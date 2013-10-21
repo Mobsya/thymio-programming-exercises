@@ -1,0 +1,292 @@
+\chapter{Controlling the Robot}
+
+All our projects contain an algorithm that \emph{decides} what to do.
+The proximity sensors measure a value and if it is above or below a
+threshold, the program decides (using an \p{if}-statement) whether to
+start or stop the robot, or to turn it in one direction or another. The
+algorithms are called \emph{control algorithms} and there is a
+sophisticated mathematical theory of control that is fundamental in
+robotics. In this chapter, we develop several projects that demonstrate
+the concept of a control algorithm.
+
+The projects concern searching for and approaching an obstacle, as was
+done in the cat-catches-mouse project in Chapter~\ref{c.cat}. We
+simplify the projects in order to the focus on the control algorithms.
+The presentation of the projects will be more informal than was done in
+previous chapters on the assumption that you now have enough experience
+to design state machines, declare constants and variables, and write
+event handlers and subroutines.
+
+I built an obstacle from an empty vitamin bottle wrapped in aluminum
+foil. You could also use a lipstick canister. The the obstacle must be
+narrow so that the individual horizontal proximity sensors will be able
+to locate it accurately.
+
+\gr{control}{.6}
+
+Before you proceed with the projects, experiment to find out the range
+of values returned by the horizontal proximity sensors as the obstacle
+gets closer. Recall that you can examine the values in the
+\bu{Variables} pane of Aseba after checking the box labeled \p{auto}.
+Define a constant \p{THRESHOLD} to be close to the highest value. I
+found that the values ranged between 0 and 4100 or a bit more, so I
+defined \p{THRESHOLD} as 4000.
+
+The first two projects are very simple and are intended to introduce the
+basic idea of a \emph{proportional} control algorithm. This is followed
+by three, more realistic, projects that present proportional and
+\emph{proportional-integral} algorithms.\footnote{Don't be frightened by
+the fancy names; the ideas are not difficult.} 
+
+\section{Searching}
+
+\sect{An on-off controller}
+
+\textbf{Specification}: When the leftmost horizontal proximity sensor of
+the Thymio-II detects the obstacle, it turns rapidly to the right until
+the rightmost sensor detects the obstacle and then stops.\footnote{In
+all the projects in this chapter, I used the event of touching the
+center button to start the program and to stop it, turning the motors
+off. You may wish to implement this feature.}
+
+{\raggedleft \hfill Program file \bu{scan-on-off.aesl}}
+
+The first control algorithm is very simple. When the value of the
+leftmost proximity sensor is greater than the threshold turn the motors
+on to their highest positive and negative values (500 and $-$500). When
+the value of the rightmost sensor is greater than the threshold, turn
+the motors off:
+
+\begin{verbatim}
+  onevent prox
+    if  prox.horizontal[0] > THRESHOLD then
+      motor.left.target  = -MOTOR 
+      motor.right.target = MOTOR
+    elseif  prox.horizontal[4] > THRESHOLD then
+      motor.left.target  = 0
+      motor.right.target = 0
+    end
+\end{verbatim}
+
+This is called the \emph{on-off} algorithm, because the motors are
+either on at full power or off.\footnote{Another, colorful, name is the
+\emph{bang-bang} algorithm!} Run the program. What happens? When I ran
+the program, the robot stopped with the obstacle \emph{past} the
+rightmost sensor. When the robot is moving at full speed, the rate at
+which the \p{prox} event occurs is simply not fast enough to stop the
+robot in time. As you know from riding in a car, starting and stopping
+as fast as possible is very uncomfortable. Fast acceleration and braking
+is also bad for the engine and brakes. For these reasons, the on-off
+algorithm is not used in practice.
+
+\textbf{Experiment}: Modify the program so that the robot searches back
+and forth, detecting the obstacle alternately at the leftmost and
+rightmost sensors.
+
+\sect{A proportional controller}
+
+To develop an algorithm that is better than the on-off algorithm, we
+take inspiration from riding a bicycle. Suppose that you are riding your
+bicycle and see that the traffic light ahead has turned red. You
+\emph{don't} wait until the last moment and then squeeze hard on the
+brake lever; if you did so, you might be thrown from the bicycle! What
+you do is to slow your speed gradually: First, you stop pedaling; then,
+you squeeze the brake gently to slow down a bit more; finally, when you
+are at the light and going slowly, you squeeze harder to fully stop the
+bicycle.
+
+The algorithm used by a bicycle rider can be expressed in general as: to
+stop gradually, reduce your speed more as you get closer to the
+obstacle. The technical term is that the decrease in speed is
+\emph{proportional} to how close you are to the light: the closer you
+are, the more you slow down.
+
+{\raggedleft \hfill Program file \bu{scan-p.aesl}}
+
+To implement a proportional algorithm we have to \emph{measure} how
+close the obstacle is from rightmost sensor. The language of the
+following description might seem strange but the intent should be clear:
+
+\begin{quote}
+When detected by the leftmost sensor, the obstacle is 0 units close;\\
+When detected by the next sensor to the right, it is 1 unit close;\\
+When detected by the center sensor, it is 2 units close;\\
+When detected by the next sensor to the right, it is 3 units close;\\
+When detected by the rightmost sensor, the obstacle is many units close.
+\end{quote}
+
+The algorithm reduces the motor power setting in proportion to the
+number of units that are measured. Define a constant \p{DELTA} for the
+amount by which the power is reduced for each unit. When the obstacle is
+detected by the $n$'th sensor ($n$ = 0 .. 4), the power is reduced by
+$n$ times \p{DELTA}. The event handler is shown in
+Figure~\ref{f.pro}.\footnote{Obviously, we don't have to multiply
+\p{DELTA} by 1 and we don't have to add a term that is necessarily 0,
+but this presentation clarifies the proportional algorithm.}
+
+\begin{figure}
+\begin{verbatim}
+  onevent prox
+    if  prox.horizontal[4] > THRESHOLD then
+      motor.left.target  = 0
+      motor.right.target = 0
+    elseif  prox.horizontal[3] > THRESHOLD then
+      motor.left.target  = -MOTOR + DELTA * 3
+      motor.right.target =  MOTOR - DELTA * 3
+    elseif  prox.horizontal[2] > THRESHOLD then
+      motor.left.target  = -MOTOR + DELTA * 2
+      motor.right.target =  MOTOR - DELTA * 2
+    elseif  prox.horizontal[1] > THRESHOLD then
+      motor.left.target  = -MOTOR + DELTA * 1
+      motor.right.target =  MOTOR - DELTA * 1
+    elseif  prox.horizontal[0] > THRESHOLD then
+      motor.left.target  = -MOTOR + DELTA * 0
+      motor.right.target =  MOTOR - DELTA * 0
+    end
+\end{verbatim}
+\caption{Searching with a proportional algorithm}\label{f.pro}
+\end{figure}
+
+Run the program, experimenting with various values for \p{DELTA},
+so that the robot starts turning very fast but then gently
+slows down, just as if you were applying more and more pressure to the
+brake lever on the bicycle. The robot should stop with the rightmost
+sensor precisely opposite the obstacle.
+
+\textbf{Programming note}: Why are the sensors checked in the order 4,
+3, 2, 1, 0 and not in the order 0, 1, 2, 3, 4? The answer is in the
+footnote, but think about it before you look.\footnote{If the obstacle
+is detected by \emph{two} sensors at the same time, the lower power
+setting of the sensor \emph{closer to} the rightmost sensor should be
+used. This way the slowing down of the robot is smoother. Experiment
+with the other order and see what happens.}
+
+
+\section{Approaching}
+
+In this section we develop algorithms for slowing down and stopping the
+robot. It is similar to the \emph{pounce} behavior of the
+cat-catches-mouse project in Chapter~\ref{c.cat}. The proportional
+algorithm in the previous section used a rather arbitrary measure of
+closeness: the number of sensors between the current position of the
+obstacle and the rightmost sensor. In this section, the power setting of
+the motors will be proportional to a measure of the distance between the
+sensor and the obstacle.
+
+\textbf{Specification}: The obstacle is placed in front of the center
+horizontal proximity sensor. The robot moves towards the obstacle and
+stops just before hitting it.
+
+Previously, you were asked to determine the upper limit of the value of
+the horizontal proximity sensor when it detected the obstacle. For the
+projects in this section, a value close to the upper limit is
+given by the constant \p{TARGET}. Instead of checking if the value of
+the sensor is above a threshold, we compute the \emph{error} defined as:
+\begin{displaymath}
+\mathit{error} = \mathit{target\ distance} - \mathit{measured\ distance} 
+\end{displaymath}
+The robot stops when the error is below a value given by the constant
+\p{TARGET\_ERROR}.
+
+\sect{An on-off controller}
+
+{\raggedleft \hfill Program file \bu{approach-on-off.aesl}}
+
+Here is the event handler for an on-off controller. It turns the motors
+off when the error is small, but leaves them at full power when the
+error is large:
+
+\begin{verbatim}
+  onevent prox
+    error = abs (TARGET - prox.horizontal[2])
+    if error < TARGET_ERROR then
+      callsub stop
+    else
+      motor.left.target  =  MOTOR
+      motor.right.target =  MOTOR
+    end
+\end{verbatim}
+
+\textbf{Programming note}: The absolute value is used because the value
+of the sensor can be slightly higher than \p{TARGET} so the error can be
+negative. What problem can this cause? The answer is in the footnote,
+but think about it before you look.\footnote{If the value of the sensor
+is large, the absolute value of the difference could be larger than
+\p{TARGET\_ERROR} and the robot will continue moving instead of
+stopping. Modify the program to solve this problem.}
+
+When I ran this program the robot moved so fast that it collided with
+the obstacle!
+
+\sect{A proportional controller}
+
+{\raggedleft \hfill Program file \bu{approach-p.aesl}}
+
+In a proportional controller the motor power is proportional to the
+error: The larger the error---the farther the robot is from the
+obstacle---the higher the power; as the robot approaches the obstacle,
+the error becomes small and the power is reduced. The power is
+determined by multiplying the error by a number called the \emph{gain}
+for which we define a constant \p{GAIN\_P}. Be careful to avoid
+saturation: the power must never be higher than the highest allowed
+value, which is 500 for the Thymio-II robot:
+
+\begin{verbatim}
+    motor_power = error * GAIN_P
+    if motor_power > 500 then motor_power = 500 end
+\end{verbatim}
+
+Experiment to find a value for the gain that gives good results. I was
+able to get the robot to stop just before hitting the obstacle.
+
+\textbf{Programming note}: The variable \p{error} has values in the
+range from 0 to about 4000, while we want the motor power to have values
+in the range 0 to 500. Therefore, the gain should be $1/8 = 0.125$ (or
+less).\footnote{Recall that at the beginning of the chapter, we asked
+that you experiment to determine the range of the sensors on your
+Thymio-II. You will have to determine the appropriate gain for your
+robot.} In Section~\ref{s.measure}, we solved this problem by scaling
+the integer division, but there is a better solution.
+
+The Aseba native function \p{math.muldiv(A, B, C, D)} computes $A = (B
+\cdot C) / D$ in 32-bit arithmetic. Therefore, \p{GAIN\_P} can be
+defined to be 8 and the value of \p{motor\_power} computed without using
+a scaling factor:
+
+\begin{verbatim}
+  error = abs (TARGET - prox.horizontal[2])
+  call math.muldiv(motor_power, error, 1, GAIN_P)
+  if motor_power > 500 then motor_power = 500 end
+\end{verbatim}
+
+\textbf{Programming note}: In my program, the statements in the event
+handler for \p{prox} are only run if the state is on and not off.
+However, I placed the computations of \p{error} and \p{motor\_power}
+before checking the state so that I can observe them in the
+\p{Variables} pane without actually running the algorithm.
+
+\sect{A proportional-integral controller (advanced)}
+
+{\raggedleft \hfill Program file \bu{approach-pi.aesl}}
+
+While the proportional controller does not collide with the obstacle, it
+may not get as close as we want it to. A \emph{proportional-integral
+(PI) controller} can to a better job by using the accumulated error to
+control the power setting. In mathematics, an accumulated sum is called
+an integral.
+
+To implement a PI controller, use a variable \p{error\_sum}to accumulate
+the error and then multiply it by a new factor \p{GAIN\_I} when the
+motor power is computed. The variable \p{error\_sum} will grow quite
+large so it is divided by a scale factor.
+
+\begin{verbatim}
+  error = abs (TARGET - prox.horizontal[2])
+  error_sum = error_sum + (error / SUM_FACTOR)
+  call math.muldiv(motor_power, error, 1, GAIN_P)
+  motor_power = motor_power + error_sum / GAIN_I
+  if motor_power > 500 then motor_power = 500 end
+\end{verbatim}
+
+Experiment with the gains to see if you can detect a difference between
+the P controller and the PI controller.

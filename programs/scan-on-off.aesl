@@ -1,0 +1,62 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+
+
+<!--list of constants-->
+<constant value="500" name="MOTOR"/>
+<constant value="500" name="THRESHOLD"/>
+
+
+<!--show keywords state-->
+<keywords flag="false"/>
+
+
+<!--node thymio-II-->
+<node nodeId="1" name="thymio-II"># Thymio-II program: on-off algorithm for searching
+# Copyright 2013 by Moti Ben-Ari
+# CreativeCommons BY-SA 2.0
+
+# Constants
+#  THRESHOLD for sensing the obstacle
+#  MOTOR     power setting for the motor
+
+var state  # The state 0 = off, 1 = on
+
+state = 0
+motor.left.target  = 0
+motor.right.target = 0
+
+# Proximity event handler
+onevent prox
+  # Do nothing in state 0
+  if state == 0 then return end
+  # If the leftmost sensor detects the obstacle,
+  #   set motors to full power
+  if  prox.horizontal[0] > THRESHOLD then
+    motor.left.target  = -MOTOR 
+    motor.right.target = MOTOR
+  # If the rightmost sensor detects the obstacle,
+  #   stop the motors
+  elseif  prox.horizontal[4] > THRESHOLD then
+  	state = 0
+    motor.left.target  = 0
+  	motor.right.target = 0
+  end
+
+# Start and stop the algorithm and the motors
+onevent button.center
+  if button.center == 1 then return end
+  if state == 0 then
+    state = 1
+  else
+    state = 0
+    motor.left.target  = 0
+    motor.right.target = 0
+  end
+</node>
+
+
+</network>

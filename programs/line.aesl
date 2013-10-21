@@ -1,0 +1,152 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+
+
+<!--list of constants-->
+<constant value="150" name="THRESHOLD"/>
+<constant value="25" name="CHANGE"/>
+<constant value="100" name="DIFF"/>
+<constant value="20" name="TIMER"/>
+<constant value="100" name="INCREMENT"/>
+
+
+<!--show keywords state-->
+<keywords flag="true"/>
+
+
+<!--node thymio-II-->
+<node nodeId="1" name="thymio-II"># Thymio-II program: follow a line
+# Copyright 2013 by Moti Ben-Ari
+# CreativeCommons BY-SA 2.0
+
+# Constants
+#  THRESHOLD for sensing the tape
+#  DIFF      difference to remember last deviation
+#  CHANGE    percentage change of motors for steering
+#  TIMER     timer for computing direction
+
+# Variables
+var motor          # The base value of the motor power
+var motor_change   # The amount to change when approaching and turning
+
+var state # 0 = off, 1 = on
+
+var diff  # The difference between the two ground sensors
+var dir   # The last direction: 1 = right, -1 = left
+
+# Initialization
+motor = 0
+motor_change = (motor * CHANGE)/100
+state = 0
+dir = 0
+timer.period[0] = TIMER
+call leds.circle(0,0,0,0,0,0,0,0)
+call leds.buttons(0,0,0,0)
+
+# Set the circle leds to indicate the motor power
+sub set_circle_leds
+  if motor/100==0 then call leds.circle(0,0,0,0,0,0,0,0) end
+  if motor/100==1 then call leds.circle(32,0,0,0,0,0,0,0) end
+  if motor/100==2 then call leds.circle(32,32,0,0,0,0,0,0) end
+  if motor/100==3 then call leds.circle(32,32,32,0,0,0,0,0) end
+  if motor/100==4 then call leds.circle(32,32,32,32,0,0,0,0) end
+  if motor/100==5 then call leds.circle(32,32,32,32,32,0,0,0) end
+
+# Left and right button event handlers
+#   Increase or decrease motor power within 0-500
+onevent button.left
+  if  button.left == 0 then
+    motor = motor - INCREMENT
+    if  motor &lt; 0 then motor = 0 end
+    motor_change = (motor * CHANGE)/100
+    callsub set_circle_leds
+  end
+
+onevent button.right
+  if  button.right == 0 then
+    motor = motor + INCREMENT
+    if  motor > 500 then motor = 500 end
+    motor_change = (motor * CHANGE)/100
+    callsub set_circle_leds
+  end
+
+# When center button released
+onevent button.center
+  if  button.center == 0 then
+    # If off, set state to 1 (on) and dirve forwards
+    if  state == 0 then
+      state = 1
+      motor.left.target  = motor
+      motor.right.target = motor
+    #   else if state is on, call stop the motors
+    else
+      state = 0
+      motor.left.target  = 0
+      motor.right.target = 0
+    end
+    motor_change = (motor * CHANGE)/100
+    callsub set_circle_leds
+  end
+
+# Timer event occurs
+onevent timer0
+  # Compute difference between the values of the ground sensors
+  diff = prox.ground.delta[0] - prox.ground.delta[1]
+  # If absolute value of the difference is above the threshold
+  if  abs diff >= DIFF then
+    # Compute direction according to the sign of the difference
+  	if  diff > 0 then
+  	  dir = 1
+      call leds.top(0, 32, 0)
+    else
+      dir = -1
+  	  call leds.top(0, 0, 32)
+  	end
+  else
+    call leds.top(0, 0, 0)
+  end
+
+# Drive straight
+sub drive
+  # If both sensors no longer detect the tape
+  if  prox.ground.delta[0] > THRESHOLD and
+      prox.ground.delta[1] > THRESHOLD then
+    # Turn left or right depending on the value in dir
+    if  dir == 1 then
+      motor.left.target  = motor + motor_change
+  	  motor.right.target = motor - motor_change
+      call leds.buttons(0,32,0,0)
+    else    	
+  	  motor.left.target  = motor - motor_change
+  	  motor.right.target = motor + motor_change
+      call leds.buttons(0,0,0,32)
+    end
+  # If one of the ground sensors finds the tape
+  #   turn the robot in the appropriate direction
+  elseif  prox.ground.delta[0] > THRESHOLD then
+  	 motor.left.target  = motor + motor_change
+  	 motor.right.target = motor - motor_change
+     call leds.buttons(0,32,0,0)
+  elseif  prox.ground.delta[1] > THRESHOLD then
+  	 motor.left.target  = motor - motor_change
+  	 motor.right.target = motor + motor_change
+     call leds.buttons(0,0,0,32)
+  # Otherwise, drive straight
+  else
+  	 motor.left.target  = motor
+  	 motor.right.target = motor
+     call leds.buttons(32,0,0,0)
+  end
+
+# Proximity event occurs, call subroutine drive
+onevent prox
+  if  state == 1 then
+	callsub drive
+  end
+</node>
+
+
+</network>

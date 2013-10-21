@@ -1,0 +1,153 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+
+
+<!--list of constants-->
+<constant value="200" name="SCAN"/>
+<constant value="100" name="TURN"/>
+<constant value="400" name="POUNCE"/>
+<constant value="1500" name="TIMER"/>
+<constant value="400" name="DETECTION"/>
+<constant value="3000" name="COLLISION"/>
+
+
+<!--show keywords state-->
+<keywords flag="true"/>
+
+
+<!--node thymio-II-->
+<node nodeId="1" name="thymio-II"># Thymio-II program: cat hunts mouse
+# Copyright 2013 by Moti Ben-Ari
+# CreativeCommons BY-SA 2.0
+
+# Constants
+#   SCAN      - motor power during search
+#   TURN      - motor power during turn towards mouse
+#   POUNCE    - motor power during pounce on mouse
+#   TIMER     - time between change of directions
+#   DETECTION - proximity detection of mouse
+#   COLLISION - proximity of collision with mouse
+
+# Variables
+var state         # 0 = off, 1 = search, 2 = turn to, 3 = pounce
+var motor_state   # +1 = right, -1 = left
+var sound_state   # 0-4 for playing Beethoven's Fifth
+var i             # loop variable
+
+# Initialize: no movement, no leds, set timer0, initialize states
+sub initialize
+motor.left.target = 0
+motor.right.target = 0
+call leds.top(0,0,0)
+call leds.temperature(0,0)
+timer.period[0] = TIMER
+motor_state = -1
+sound_state = 0
+
+# Search for the mouse, called by timer0 event
+# Change leds, motor_state, motor power
+# If mouses is sensed, go to state 2 = turn_to
+sub search
+  if motor_state == -1 then
+    call leds.top(0,32,0)
+	motor_state = 1
+	motor.left.target = SCAN
+	motor.right.target = -SCAN
+  elseif motor_state == 1 then
+    call leds.top(0,0,32)
+	motor_state = -1
+	motor.left.target = -SCAN
+	motor.right.target = SCAN
+  end
+  for i in 0:4 do
+	if (prox.horizontal[i] > DETECTION) then
+	  state = 2
+	end
+  end
+
+# In state 1, search for the mouse
+onevent timer0
+if  state == 1 then
+    callsub search	
+end
+
+# The mouse was found during the scan
+sub turn_to
+  #   If close to center sensor, change state to 3 = pounce
+  if (prox.horizontal[2] > DETECTION) then
+	motor.left.target = POUNCE
+    motor.right.target = POUNCE
+    call leds.top(32,32,32)
+    state = 3
+  #   If detected by left sensors, turn slightly left
+  elseif (prox.horizontal[0] > DETECTION) or
+    (prox.horizontal[1] > DETECTION) then
+	motor.left.target = -TURN
+    motor.right.target = TURN
+    call leds.top(32,0,32)
+  #   If detected by right sensors, turn slightly right
+  elseif (prox.horizontal[3] > DETECTION) or
+    (prox.horizontal[4] > DETECTION) then
+	motor.left.target = TURN
+    motor.right.target = -TURN
+    call leds.top(32,0,32)
+  end
+
+# The cat is facing the mouse
+
+sub pounce
+  # If above collision threshold
+  #   Stop motors, change state to 0 = off and initiate sound_state
+  if (prox.horizontal[2] > COLLISION) then
+    motor.left.target = 0
+    motor.right.target = 0
+    call leds.top(32,32,0)
+    state = 0
+    sound_state = 0
+    call sound.freq(392,20)
+  end
+
+# On a proximity event, call turn_to or pounce
+onevent prox
+  if state == 2 then
+	callsub turn_to
+  elseif  state == 3 then
+    callsub pounce
+  end
+
+
+# Turn the state on or off and initialize
+sub on_off
+  if state == 0 then
+    state = 1
+  else
+    state = 0
+  end
+  callsub initialize
+
+# Turn on or off when the center button is released
+onevent button.center
+  if button.center == 0 then
+    callsub on_off
+  end
+
+# Victory sound from Beethoven's Fifth
+# Play G three times for 1/3 seconds
+#   and then Eb for 4/3 seconds
+onevent sound.finished
+  if  sound_state &lt; 2 then
+    call sound.freq(392,20)
+    sound_state++
+  elseif  sound_state == 2 then
+    call sound.freq(311,80)
+    sound_state++
+  elseif  sound_state == 3 then
+    call leds.top(0,0,0)
+  end
+</node>
+
+
+</network>

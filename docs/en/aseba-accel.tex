@@ -1,0 +1,417 @@
+\chapter{How Fast is the Thymio-II?}\label{c.fast}
+
+There are three related projects in this chapter. The first project measures the
+speed of the robot by measuring how long it takes the robot to move a
+fixed length. The second project enhances the first one by enabling you
+to change the speed without making a change in the program. The third
+project measures the acceleration of the robot.
+
+\section{Measuring the speed of the Thymio-II}\label{s.measure}
+
+\sect{Specification}
+
+Measure the speed of the Thymio-II robot.
+
+\sect{System design}
+
+Construct a long, narrow rectangle of black tape on the floor and place
+the robot near the left end of the rectangle facing right:\footnote{I am
+assuming that the floor has a light color. If the floor has a dark
+color, you should use white tape and change the program accordingly.}
+
+\begin{center}
+\begin{picture}(315,45)
+%\put(0,0){\framebox(315,45){}}
+\put(0,2){
+\put(0,0){\framebox(30,30){}}
+\put(30,15){\oval(30,30)[r]}
+\put(45,15){\vector(1,0){15}}
+}
+\put(65,5){\colorbox{black}{\makebox(200,24){}}}
+\put(75,12){\colorbox{white}{\makebox(180,10){}}}
+
+\put(135,37){\vector(-1,0){60}}
+\put(195,37){\vector(1,0){60}}
+
+\put(146,33){\makebox(40,10){\textsf{1 meter}}}
+
+\put(277,17){\vector(0,1){8}}
+\put(277,17){\vector(0,-1){8}}
+\put(282,14){\makebox(40,10)[l]{\textsf{$\sim$ 10 cm}}}
+
+\end{picture}
+\end{center}
+
+The distance between the right edge of the left tape and the left edge
+of the right tape should be exactly one meter, while the distance
+between the top and bottom tapes should be sufficient so that both
+ground sensors can detect the floor but without leaving too much room
+for the robot to turn and detect the tapes.
+
+When the forward button is touched, the robot moves slowly straight
+ahead until it detects the left tape; it continues to move over the tape
+until it detects the right edge of the left tape. At that point, it
+starts moving rapidly until it reaches the left edge of the right tape,
+at which point it stops. If the robot detects the top or bottom tapes,
+it turns back to a straight course.
+
+When the robot detects the right edge of the left tape, it sets a time
+counter to zero. The value of the time counter when the robot stops is
+used to compute the time that the robot takes to travel one meter and
+thus its velocity.
+
+Touching the center button when the robot is moving causes it to stop.
+
+\sect{State machine}
+
+The program transitions sequentially through four states:
+
+\begin{center}
+\unitlength=1.2pt
+\begin{picture}(300,35)
+%\put(0,0){\framebox(300,35){}}
+\put(30,10){\oval(60,20)}
+\put(110,10){\oval(60,20)}
+\put(190,10){\oval(60,20)}
+\put(270,10){\oval(60,20)}
+\put(0,0){ \makebox(60,20){\bu{0=off}}}
+\put(80,0){\makebox(60,20){\bu{1=find}}}
+\put(160,0){\makebox(60,20){\bu{2=skip}}}
+\put(240,0){\makebox(60,20){\bu{3=straight}}}
+\put( 60,10){\vector(1,0){20}}
+\put(140,10){\vector(1,0){20}}
+\put(220,10){\vector(1,0){20}}
+\put(270,20){\line(0,1){15}}
+\put(30,35){\line(1,0){240}}
+\put(30,35){\vector(0,-1){15}}
+\end{picture}
+\end{center}
+
+\begin{itemize}
+
+\item The transition from \bu{off} to \bu{find} occurs when
+the center button is touched.
+
+\item The transition from \bu{find} to \bu{skip} occurs
+when the left edge of the left tape is detected.
+
+\item The transition from \bu{skip} to \bu{straight} occurs
+when the right edge of the left tape is detected.
+
+\item The transition from \bu{straight} to \bu{off} occurs
+when the left edge of the right tape is detected.
+
+\item Additionally, in all the states except \bu{off}, touching the
+center button causes a transition to state \bu{off}.
+\end{itemize}
+
+The value of the current state is displayed by turning on a LED
+associated with a button: 0=front, 1=right, 2=rear, 3=left.
+
+
+\sect{Constants}
+
+\begin{itemize}
+\item \p{THRESHOLD}: The threshold below which a sensor detects that it
+is on a tape.
+
+\item \p{MOTOR}: The power setting of the motors.
+
+\item \p{CHANGE}: The percentage change in the motor power when turning.
+\end{itemize}
+
+\sect{Variables}
+
+\begin{itemize}
+\item \p{state}: The current value of the state machine (0..3). 
+\item \p{time}:  A counter of tenths of seconds.
+
+\end{itemize}
+
+\sect{Event handlers and subroutines}
+
+\begin{itemize}
+
+\item Initialization: Initialize \p{state} to 0, set the LEDs
+accordingly, initialize \p{timer0} to occur every 100 milliseconds = 0.1
+seconds, and turn the motors off.
+
+\item When the center-button event occurs: if the button is released,
+the subroutine \p{stop} is called. It sets the state to 0 (\bu{off}) and
+initializes the motors.
+
+\item When the \bu{timer0} event occurs: if the current state is 3
+(\bu{straight}), the variable \p{time} is incremented.
+
+\item When a proximity event occurs, the subroutine called depends on
+the state:
+
+\begin{itemize}
+
+\item In state 1 (\bu{find}) subroutine \p{start\_found} is called. If
+the start of the tape is found (both ground sensors sense black---a
+value less than the threshold), the motors are set to run at a reduced
+speed. The state is changed to 2 (\bu{skip}).
+
+\item In state 2 (\bu{skip}) subroutine \p{end\_of\_start\_found} is
+called. When both ground sensors no longer sense black, this is the end
+of the start tape. The state is changed to 3 (\bu{straight}), the motors
+are set to run at the value \p{MOTOR} and the variable \p{time} is
+initialized to 0.
+
+\item In state 3 (\bu{straight}) subroutine \p{drive\_straight} is
+called. If both ground sensors sense black, this is the finish line and
+\p{stop} is called. If only one sensor senses black, the robot is turned
+to get it going straight again by increasing the speed of one wheel and
+decreasing the other. If neither sense black, the robot continues
+straight.
+
+\end{itemize}
+\end{itemize}
+
+\sect{Programming notes}
+
+{\raggedleft \hfill Program file \bu{speed1.aesl}}
+
+The initialization statements and those in the subroutine \p{stop} are
+almost the same, but have to be repeated because the initialization
+cannot call a subroutine.
+
+The constant \p{CHANGE} specifies the percentage by which the motor
+power setting \p{MOTOR} should be increased or reduced to turn the
+robot. The percentage 25\% is expressed in mathematical calculation by
+the decimal number $0.25$, but Aseba does not support decimal numbers.
+If the value of \p{CHANGE} is 25, we cannot write \p{CHANGE / 100},
+because division in Aseba is \emph{integer division}: $25/100$ equals 0
+with remainder 25.\footnote{You can obtain the remainder using the
+\emph{modulo} operation in Aseba: \p{CHANGE \% 100}.} The solution is to
+first perform a multiplication and then a division, so, for example,
+$(300\times 25)/100 = 75$. The Aseba statements to change the power
+setting are:
+
+\begin{verbatim}
+  motor.left.target  = MOTOR + (MOTOR * CHANGE)/100
+  motor.right.target = MOTOR - (MOTOR * CHANGE)/100
+\end{verbatim}
+
+\centeredbox{The value of the variable \p{time} when the robot stops can
+be obtained by looking in the table labeled \textbf{Variables} at the
+left of the Aseba Studio window. When the robot stops, click
+\bu{refresh}. Better, click the check box \bu{auto} and the display will
+be dynamically refreshed.}
+
+\sect{Measuring the speed}
+
+The robot was run five times, one for each power setting: 100, 200, 300,
+400, 500. The value of the variable \p{time} was recorded for each run
+and divided by ten since the variable records tenths of a second.
+Dividing 100 centimeters (= 1 meter) by the time gives the (average)
+speed of the robot:
+
+\begin{center}
+\begin{tabular}{|c|r|r|}\hline
+Power  & Time (sec)  &Speed (cm/sec)\\\hline
+100&30.5  &3.3\\\hline
+200&15.5  &6.5\\\hline
+300&10.5  &9.5\\\hline
+400&7.8   &12.8\\\hline
+500&6.5   &15.6\\\hline
+\end{tabular}
+\end{center}
+
+Here is a graph of power (x-axis) vs. speed (y-axis):
+
+\gr{accel}{.6}
+
+The relation is linear! Linearity is a desirable property because you
+can easily change the power to obtain any needed speed. If the relation
+were not linear, you would have to adjust the power setting by including
+a table of power vs. speed in the program.
+
+\section{Setting the power from the Thymio-II}
+
+\sect{Specification}
+
+It is difficult to measure the speed of the robot for different power
+settings because for each one you have to change the program and
+reconnect the robot to the computer to load the new program. Modify the
+program so that the power can be changed by pressing buttons on the
+robot.
+
+\sect{System design}
+
+The right and left buttons are used to increase and decrease the power
+setting in the range 0 .. 500. The setting is displayed by turning on 0
+.. 5 circle LEDs, given by the power setting divided by 100.
+
+\sect{Constants}
+
+\begin{itemize}
+\item The constant \p{MOTOR} is no longer needed.
+\item \p{INCREMENT} is the amount by which the motor power is increased
+or decreased when the right and left buttons are pressed.
+\end{itemize}
+
+\sect{Variables}
+
+\begin{itemize}
+\item \p{motor}: The motor power setting.
+\item \p{motor\_change}: The change to the motor power setting.
+\end{itemize}
+
+
+\sect{Event handlers and subroutines}
+
+Two event handlers \p{button.left} and \p{button.right} are needed to
+detect when these buttons are released.
+
+The subroutine \p{set\_circle\_leds} lights the correct number of
+circle LEDs.
+
+\sect{Programming notes}
+
+{\raggedleft \hfill Program file \bu{speed2.aesl}}
+
+All occurrences of the constant \p{MOTOR} must be replaced by the
+variable \p{motor}.
+
+In order to avoid recomputing the expression \p{(motor * CHANGE)/100}
+frequently, this value is assigned to the variable \p{motor\_change}
+whenever the value of \p{motor} is changed. The assignment of power
+setting to the power uses this value:
+
+\begin{verbatim}
+  motor_change = (motor * CHANGE)/100
+
+  motor.right.target = motor - motor_change
+  motor.right.target = motor - motor_change
+\end{verbatim}
+
+When increasing or decreasing the motor power, we have to be careful not
+to give values that are outside the range 0 .. 500 that the motor
+accepts. To avoid such \emph{saturation}, the range is checked when the
+left and right buttons are touched:
+
+\begin{verbatim}
+  if  motor < 0 then motor = 0 end
+
+  if  motor > 500 then motor = 500 end
+\end{verbatim}
+
+The subroutine \p{set\_circle\_leds} consists of statements of the form:
+
+\begin{verbatim}
+  if motor / 100 == 3 then
+    call leds.circle(32,32,32,0,0,0,0,0)
+  end
+\end{verbatim}
+for each value in the range 0 .. 5. Division in Aseba is integer
+division with truncation so if the value of \p{motor} is 328, the result
+of the division is 3.
+
+\section{Measuring acceleration of the Thymio-II}
+
+Acceleration is the rate of change of the speed. For example, if the
+speed of the robot starts at 0, is 5 cm/sec after 1 second, 10 cm/sec
+after 2 seconds, and 15 cm/sec after 3 seconds, then the acceleration is
+5 cm/sec per second, written 5 cm/sec$^2$.
+
+\sect{Specification}
+
+Measure the acceleration of the robot as the power setting is changed.
+
+\sect{System design}
+
+The robot moves to the end of the start tape and stops.
+
+The timer event \bu{timer1} is set to occur every $t$ seconds. When it
+occurs, the power of the robot is increased by 100. Therefore, the robot
+runs at each power setting 100, 200, 300, 400, 500 for $t$ seconds. When
+it has run at power 500 for $t$ seconds, the robot stops. The
+measurements are explained below.
+
+\sect{Constants}
+
+\begin{itemize}
+\item \p{MOTOR}: The initial power setting of the motors.
+
+\item \p{ACCEL}: The time between occurrences of the event \bu{timer1}.  
+\end{itemize}
+
+\sect{Event handlers and subroutines}
+
+\begin{itemize}
+
+\item Subroutine \p{end\_of\_start\_found} is modified to set
+\p{motor} to 0 and stop the robot.
+
+\item Subroutine \p{drive\_straight} is modified to remove the condition
+of stopping when the end tape is reached.
+
+\item When the \bu{timer1} event occurs and the state is 3
+(\bu{straight}):
+\begin{itemize}
+\item If \p{motor} is less than 500, increase the value of \p{motor} by 100.
+\item If \p{motor} is equal to 500, call subroutine \p{stop}.
+\end{itemize}
+
+
+\end{itemize}
+
+\sect{Programming notes}
+
+{\raggedleft \hfill Program file \bu{speed3.aesl}}
+
+\begin{itemize}
+
+\item The counter \p{time} should be initialized to 0 in the
+handler for the \bu{timer1} event when \p{motor} is 0. This will be more
+accurate since the robot starts to move when this event handler is run
+and not when the robot reaches the end of the start tape.
+
+\item Initialization of \p{motor} to \p{MOTOR} should occur when the
+center button event occurs so that you can run the program multiple
+times without reloading.
+
+\end{itemize}
+
+\sect{Measuring the acceleration} Set the value of \p{timer1}
+successively to three values (500 ms = 0.5 second, 1000 ms = 1 second,
+2000 ms = 2 seconds) and run the program. Use a tape measure to measure
+the distance that the robot moves and note the time as recorded in the
+counter \p{time}.
+
+A body that accelerates from rest travels a distance $s =
+\frac{1}{2}at^2$, where $a$ is the acceleration. Therefore, we can
+calculate the (average) acceleration as $a$ = $2s/t^2$.
+
+For the values of the timer 0.5, 1, 2 seconds, I measured that the robot
+traveled 25, 50, 100 centimeters in 2.5, 5, 10 seconds, respectively.
+The accelerations are 8, 4, 2 cm/sec$^2$, showing that the faster you
+``press the gas pedal down to the floor,'' the faster the robot
+accelerates, and that the acceleration is inversely proportional to the
+time it takes to press the pedal to the floor.
+
+\sect{Experiments}
+
+\begin{enumerate}
+
+\item Experiment to see how consistent the measurements are.
+Perform the speed measurement at the five power settings several times.
+Do you always receive the same values for the times.
+
+\item How sensitive is the speed measurement to the experimental setup.
+What result do you get if you measure the speed over a 2-meter course.
+Try making the top and bottom tapes closer together or farther apart and
+see if that affects the results.
+
+\item Experiment with the effect of friction on the speed of the robot.
+Measure the speed on a bare tile or concrete floor, on a wooden desk, on
+a sheet of plastic, and outside on the ground.
+
+\item Modify the third program so that the acceleration is smooth.
+
+\item Experiment with \emph{deceleration} where you start the robot at a
+power setting of 500 and slowly reduce the power.
+
+\end{enumerate}
