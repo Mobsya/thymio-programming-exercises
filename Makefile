@@ -1,5 +1,5 @@
 targets=thymio-programming-exercises-en.zip
-deps=$(wildcard */*/*.tex) $(wildcard images/*.png) $(wildcard programs/*.aesl) authors.txt
+deps=$(wildcard */*/*.tex) $(wildcard images/*.png) $(wildcard images/*.jpg) $(wildcard programs/*.aesl) authors.txt
 
 thymio-programming-exercises-%.pdf: docs/%/aseba.tex $(deps) Makefile build
 	cd build/$* && TEXINPUTS=../../docs/$*:${TEXINPUTS} pdflatex ../../$<
