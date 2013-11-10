@@ -1,0 +1,190 @@
+\chapter{Nonlinear Sensors}
+
+In Chapter~\ref{c.fast} we measured the speed of the Thymio-II robot for
+various settings of the motor power and found that the speed was a
+linear function of the power $v \approx 0.03p$. For example, a power
+setting of $300$ gave a speed of about $9$ cm/sec. In this chapter we
+will look at the values returned by the horizontal proximity sensors and
+ask: Are the values a linear function of the distance to an obstacle?
+
+\section{Measuring the horizontal proximity sensors}
+
+\sect{Specification}
+
+Construct a graph showing the values returned by the center horizontal
+proximity sensor for an obstacle placed at 1 cm intervals in front of
+the robot.
+
+\sect{System design}
+
+Tape a ruler on your table and carefully place the robot so that its
+front is at the 0 mark of the ruler. Place an obstacle exactly at the 1
+cm mark on the ruler and touch the center button. Store the value of
+the center proximity sensor. Repeat for 2 cm, 3 cm, \ldots, until the
+value goes to zero.
+
+The value returned by the sensor depends not only on the distance of the
+obstacle but also on how precisely it is centered in front of the
+obstacle. For each distance, move the obstacle slightly left and right
+until the value is as large as possible.\footnote{The values change all
+the time so you won't be able to get the true maximum.} You can read the
+value of the sensor in the \bu{Variables} pane at the left of the Aseba
+Studio window; click the check box \bu{auto} so that the display will be
+dynamically refreshed.
+
+\sect{Variables}
+
+\begin{itemize}
+
+\item \p{proximity}: An array for storing the values read from the
+sensor. Eight elements should be sufficient: by experiment, I found that
+the sensor is unlikely to detect an obstacle further than 8 cm away.
+Initialize each element of the array to zero so that you can determine
+which values have been entered from a new run of the program.
+
+\item \p{count}: An index for the array. 
+
+\end{itemize}
+
+\sect{Event handlers and subroutines}
+
+When the center button is released, the current value of the center
+horizontal proximity sensor is stored in the first unused element of the
+array \p{promixity}.
+
+\sect{Programming notes}
+
+{\raggedleft \hfill Program file \bu{nonlinear1.aesl}}
+
+Aseba can determine the size of an array from the number of elements in
+an initial value.
+
+\begin{verbatim}
+  var proximity[] = [0,0,0,0,0,0,0]
+\end{verbatim}
+
+\sect{Running the program}
+
+Run the program and touch the center button for each position of the
+obstacle. The values in the array \p{proximity} will be displayed in the
+\bu{Variables} pane. Construct a graph with distance on the x-axis and
+the sensor values on the y-axis. Better, run the program several times
+and use the average values of the sensors for each distance. Averaging
+values and drawing the graph is easy if you have spreadsheet software on
+your computer.\footnote{You need not copy the values by hand from Aseba
+to the spreadsheet. After running the program, select \bu{Files/Export
+memory content} and enter a file name such as \bu{data.txt}. Open the
+file \bu{data.txt} in an editor and look for the line
+\p{thymio-II.proximity}; the contents of the array are listed on this
+line and you can copy and paste them into your spreadsheet.}
+
+Figure~\ref{fig.nonlinear} shows the results of two runs and their
+average. The function is reasonably linear in the range 3--5 cm, but
+nonlinear outside that range.
+
+
+\begin{figure}
+\gr{horiz}{.6}
+\caption{Sensor value for distances 1--7 cm}\label{fig.nonlinear}
+\end{figure}
+
+\sect{Experiments}
+
+\begin{enumerate}
+\item Modify the program so that it stores the results of three
+sequences of measurements and computes the average.
+
+\item Do the values measured by sensor depend on the obstacle?
+Experiment with obstacles of different shapes and materials.
+
+\item Modify the program so that it records the values of the other four
+horizontal sensors. Do the different sensors return similar values?
+ 
+\end{enumerate}
+
+
+
+\section{Calibrating the horizontal sensors}
+
+Even highly nonlinear sensors can be used if they are \emph{calibrated}.
+The results of an experimental measurement (as described in the previous
+section) can be used to translate the raw sensor data into actual
+distances.
+
+\sect{Specification}
+
+When an obstacle is placed in front of the center horizontal sensor and
+the center button touched, the circle LEDs on the top of the robot
+display the distance from the robot.
+
+\sect{System design}
+
+An array stores the values measured for each distance. When the button
+is released, the value of the sensor is compared with the elements of
+the array. The first index at which the element of the array is lower
+than the measured value is taken to be the distance, and that number of
+LEDs are turned on. For example, let the values in the array be:
+
+\begin{verbatim}
+var proximity[] = [4100, 4045, 3650, 2705, 1850, 1245, 965, -1]
+\end{verbatim} 
+
+If the sensor measures a value of 3000, then \p{proximity[3]} (2705) is
+less than 3000, so the loop stops with the value 3 in \p{distance}.
+If the sensor measures 2000, the distance is 4 cm.
+
+\sect{Variables}
+
+\begin{itemize}
+
+\item \p{proximity}: The array stores the values of the sensors
+previously measured.
+
+\item \p{distance}: The array index; its final value is the distance to
+the obstacle.
+
+\end{itemize}
+
+\sect{Event handlers and subroutines}
+
+\begin{itemize}
+
+\item When the center button is released, a loop searches the array
+\p{proximity} comparing the values with the value measured by the
+sensor.
+
+\item \p{set\_circle\_leds}: Light the number of LEDs given by the
+variable \p{distance}; it is similar to the subroutine in
+Chapter~\ref{c.fast} that displayed the motor setting.
+
+\end{itemize}
+
+\sect{Programming notes}
+
+{\raggedleft \hfill Program file \bu{nonlinear2.aesl}}
+
+We used a well-known programming trick called searching an array with a
+\emph{sentinel}. The last element of the array is given the value $-1$,
+which is less than $0$, the \emph{smallest} possible value of the
+sensor. This ensures that the loop will \emph{always} terminate.
+
+\sect{Running the program}
+
+When I ran the program, the results were accurate for distances in the
+range 1--5, but less accurate for larger distances.
+
+\sect{Experiments}
+
+\begin{enumerate}
+
+\item The transition between $n$ cm and $n+1$ cm is taken when the
+obstacle is bit over $n$ cm from the robot. Modify the program so that
+the transition is taken halfway between the two distances.
+
+\item Modify the program so that it can measure distances of half a
+centimeter. One solution is to extend the calibration to sample values
+for every one-half centimeter. Alternatively, you could try
+\emph{interpolation}, where the transition value for a half centimeter
+distance are taken as the average of the two neighboring values.
+
+\end{enumerate}

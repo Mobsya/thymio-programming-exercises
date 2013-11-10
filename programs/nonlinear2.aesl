@@ -1,0 +1,57 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+<event size="1" name="measure"/>
+
+
+<!--list of constants-->
+
+
+<!--show keywords state-->
+<keywords flag="false"/>
+
+
+<!--node thymio-II-->
+<node nodeId="1" name="thymio-II"># Thymio-II program: calibrating a nonlinear sensor
+# Copyright 2013 by Moti Ben-Ari
+# CreativeCommons BY-SA 3.0
+
+# The array contains the values of the horizontal proximity
+#   sensor for an object at 1 .. 7 centimetrs
+# -1 is a sentinel to stop the search when the sensor returns 0
+var proximity[] = [4100, 4045, 3650, 2705, 1850, 1245, 965, -1]
+var distance  # The distance corresponding to the value
+
+call leds.circle(0,0,0,0,0,0,0,0)
+
+# Set the circle leds to indicate the distance
+sub set_circle_leds
+  if distance==0 then call leds.circle(0,0,0,0,0,0,0,0) end
+  if distance==1 then call leds.circle(32,0,0,0,0,0,0,0) end
+  if distance==2 then call leds.circle(32,32,0,0,0,0,0,0) end
+  if distance==3 then call leds.circle(32,32,32,0,0,0,0,0) end
+  if distance==4 then call leds.circle(32,32,32,32,0,0,0,0) end
+  if distance==5 then call leds.circle(32,32,32,32,32,0,0,0) end
+  if distance==6 then call leds.circle(32,32,32,32,32,32,0,0) end
+  if distance==7 then call leds.circle(32,32,32,32,32,32,32,0) end
+  if distance==8 then call leds.circle(32,32,32,32,32,32,32,32) end
+
+# When the center button is released,
+#   search the array until a value is found
+#   that is not greater than the measured value
+#   of the horizontal sensor
+# Call set_circle_leds to display the distance
+onevent button.center
+  if  button.center == 0 then
+    distance = 0
+    while proximity[distance] > prox.horizontal[2] do
+      distance++
+    end
+    callsub set_circle_leds
+  end
+</node>
+
+
+</network>
