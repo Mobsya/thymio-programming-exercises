@@ -21,7 +21,7 @@
 <!--node thymio-II-->
 <node nodeId="1" name="thymio-II"># Thymio-II program: cat hunts mouse
 # Copyright 2013 by Moti Ben-Ari
-# CreativeCommons BY-SA 2.0
+# CreativeCommons BY-SA 3.0
 
 # Constants
 #   SCAN      - motor power during search

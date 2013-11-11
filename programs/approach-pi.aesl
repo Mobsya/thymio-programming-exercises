@@ -20,7 +20,7 @@
 <!--node thymio-II-->
 <node nodeId="1" name="thymio-II"># Thymio-II program: PI algorithm for approaching
 # Copyright 2013 by Moti Ben-Ari
-# CreativeCommons BY-SA 2.0
+# CreativeCommons BY-SA 3.0
 
 # Constants
 #  TARGET        highest value of the proximity sensor
