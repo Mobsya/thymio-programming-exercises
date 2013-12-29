@@ -1,2 +1,4 @@
 build/
-thymio-programming-exercises-en.zip
+*.zip
+*.pdf
+*.bat

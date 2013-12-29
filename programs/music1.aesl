@@ -1,0 +1,75 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+
+
+<!--list of constants-->
+<constant value="40" name="SIZE"/>
+<constant value="200" name="PERIOD"/>
+<constant value="523" name="BASE"/>
+<constant value="10" name="FACTOR"/>
+<constant value="20" name="DURATION"/>
+
+
+<!--show keywords state-->
+<keywords flag="false"/>
+
+
+<!--node thymio-II-->
+<node nodeId="1" name="thymio-II"># Thymio-II program: Compose music on-the-fly
+# Copyright 2013 by Moti Ben-Ari
+# CreativeCommons BY-SA 3.0
+
+# Store the left-right acceleration and
+#   generate sound from the results
+
+# Constants
+#   SIZE        number of samples
+#   PERIOD      milliseconds between samples
+#   BASE        base frequency for sound
+#   FACTOR      factor for change to frequency
+#   DURATION    duration of each sound
+
+# Variables
+var save[SIZE]    # array to store samples
+var i             # array index
+var state = 0     # state 0/1 to start and stop sampling
+
+# Set timer to PERIOD and zero out the array
+timer.period[1] = PERIOD
+call math.fill(save, 0)
+
+# When the center button is released, start sampling
+onevent button.center
+  when  button.center == 0 do
+  	state = 1
+  	i = 0
+  end 
+
+# On timer expiration, save a sample
+# When all samples are saved, initiate the sounds
+onevent timer1
+  if  state == 0 then
+  	return
+  end
+  if  i &lt; SIZE then
+    save[i] = acc[0]
+    i++
+  else
+    state = 0
+    i = 0
+    call sound.freq(0,1)
+  end
+
+# When a sound is finished, start the next one
+onevent sound.finished
+  if  i &lt; SIZE then
+    call sound.freq(BASE+save[i]*FACTOR, DURATION)
+    i++
+  end
+</node>
+
+
+</network>
