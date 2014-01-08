@@ -6,11 +6,11 @@
 
 
 <!--list of constants-->
-<constant value="40" name="SIZE"/>
+<constant value="20" name="SIZE"/>
 <constant value="200" name="PERIOD"/>
 <constant value="523" name="BASE"/>
 <constant value="10" name="FACTOR"/>
-<constant value="20" name="DURATION"/>
+<constant value="25" name="DURATION"/>
 
 
 <!--show keywords state-->
@@ -34,8 +34,8 @@
 
 # Variables
 var save[SIZE]    # array to store samples
-var i             # array index
-var state = 0     # state 0/1 to start and stop sampling
+var index = 0     # array index
+var state = 0     # state
 
 # Set timer to PERIOD and zero out the array
 timer.period[1] = PERIOD
@@ -44,30 +44,40 @@ call math.fill(save, 0)
 # When the center button is released, start sampling
 onevent button.center
   when  button.center == 0 do
-  	state = 1
-  	i = 0
+    if  state == 0 then
+      state = 1
+  	elseif  state == 2 then
+  	  state = 3
+      call sound.freq(0,1)
+    elseif  state == 3 then
+      state = 0
+      call sound.freq(0,-1)
+  	end
+    index = 0
   end 
 
 # On timer expiration, save a sample
 # When all samples are saved, initiate the sounds
 onevent timer1
-  if  state == 0 then
-  	return
-  end
-  if  i &lt; SIZE then
-    save[i] = acc[0]
-    i++
-  else
-    state = 0
-    i = 0
-    call sound.freq(0,1)
+  if  state == 1 then
+    if  index &lt; SIZE then
+      save[index] = acc[0]
+      index++
+    else
+      state = 2
+    end
   end
 
 # When a sound is finished, start the next one
 onevent sound.finished
-  if  i &lt; SIZE then
-    call sound.freq(BASE+save[i]*FACTOR, DURATION)
-    i++
+  if  state != 3 then
+  	return
+  end
+  if  index &lt; SIZE then
+    call sound.freq(BASE+save[index]*FACTOR, DURATION)
+    index++
+  else
+    state = 0
   end
 </node>
 

@@ -8,7 +8,6 @@
 <!--list of constants-->
 <constant value="20" name="SIZE"/>
 <constant value="200" name="PERIOD"/>
-<constant value="25" name="DURATION"/>
 
 
 <!--show keywords state-->
@@ -20,18 +19,17 @@
 # Copyright 2013 by Moti Ben-Ari
 # CreativeCommons BY-SA 3.0
 
-# Store the left-right acceleration and
-#   generate sound from the results
-# Play actual notes
+# Store the left-right and front-back acceleration and
+#   generate sound from the results:
+# Left-right for the note and front-back for the duration
 
 # Constants
 #   SIZE        number of samples
 #   PERIOD      milliseconds between samples
-#   DURATION    duration of each sound
 
-# Variables
-var save[SIZE]    # array to store samples
-var index = 0     # array index
+var save0[SIZE]   # array to store left-right samples
+var save1[SIZE]   # array to store front-back samples
+var index         # array index
 var state = 0     # state
 
 # The notes middle C to high C in hertz
@@ -40,7 +38,8 @@ var notes[8] = [261, 294, 330, 349, 392, 440, 494, 523]
 # Set timer to PERIOD and zero out the array
 call leds.top(0,0,0)
 timer.period[1] = PERIOD
-call math.fill(save, 0)
+call math.fill(save0, 0)
+call math.fill(save1, 0)
 
 # When the center button is released, start sampling
 onevent button.center
@@ -60,12 +59,13 @@ onevent button.center
     index = 0
   end 
 
-# On timer expiration, save a sample
+# On timer expiration, save left-right and front-back samples
 # When all samples are saved, initiate the sounds
 onevent timer1
   if  state == 1 then
     if  index &lt; SIZE then
-      save[index] = acc[0]
+      save0[index] = acc[0]
+      save1[index] = acc[1]
       index++
     else
       state = 2
@@ -74,12 +74,13 @@ onevent timer1
   end
 
 # When a sound is finished, start the next one
+# When a sound is finished, start the next one
 onevent sound.finished
   if  state != 3 then
   	return
   end
   if  index &lt; SIZE then
-    call sound.freq(notes[(save[index]+32) % 8], DURATION)
+    call sound.freq(notes[(save0[index]+32) % 8], save1[index]+33)
     index++
   else
     state = 0
