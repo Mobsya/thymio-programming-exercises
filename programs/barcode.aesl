@@ -1,0 +1,108 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+
+
+<!--list of constants-->
+<constant value="600" name="TIME_STRAIGHT"/>
+<constant value="1025" name="TIME_LEFT"/>
+<constant value="1000" name="TIME_RIGHT"/>
+<constant value="250" name="MOTOR"/>
+<constant value="5000" name="THRESHOLD"/>
+
+
+<!--show keywords state-->
+<keywords flag="true"/>
+
+
+<!--node thymio-II-->
+<node nodeId="1" name="thymio-II"># Thymio-II program: identifying a barcode
+# Copyright 2014 by Moti Ben-Ari
+# CreativeCommons BY-SA 3.0
+
+# Constants
+#   TIME_STRAIGHT   Duration of moving straight
+#   TIME_LEFT       Duration of moving left
+#   TIME_RIGHT      Duration of moving right
+#   MOTOR           Motor power
+#   THRESHOLD       Threshold for detecting barcode
+
+var samples[12]   # Array to store samples
+var i             # Index to count sensors
+var j             # Index of samples array
+var state         # State: 0=off, 1=straight, 2=left, 3=right
+
+state = 0
+call leds.top(0,0,0)
+call math.fill(samples, 0)
+
+# Stop the motors and set the state to 0
+sub stop
+    motor.left.target = 0
+    motor.right.target = 0
+    state = 0
+
+# Move straight and set the state to 1
+sub straight
+    timer.period[0] = TIME_STRAIGHT
+    motor.left.target = MOTOR
+    motor.right.target = MOTOR
+    state = 1
+
+# Touch the forward button to start
+onevent button.forward
+  if  button.forward == 0 then
+    callsub straight
+    call leds.top(0,0,0)
+    j = 0
+  end
+
+# Touch the center button to stop
+onevent button.center
+  if  button.center == 0 then
+    callsub stop
+  end
+
+# Stop if the robot reaches the edge of the table
+onevent prox
+  if  prox.ground.delta[0] &lt; 200 or prox.ground.delta[1] &lt; 200 then
+    callsub stop
+  end
+
+# Timer event
+onevent timer0
+  # State 0: do nothing
+  if state == 0 then
+  	return
+  # State 1: change to move left
+  elseif state == 1 then
+    timer.period[0] = TIME_LEFT
+    motor.left.target = -MOTOR
+    motor.right.target = MOTOR
+    state = 2
+  # State 2: change to move right
+  #   Compute sum of horizontal sensors and save
+  #   Turn on the top LEDs if the sum is above the threshold
+  elseif  state == 2 then
+    samples[j] = 0
+    for  i in 0:4 do
+  	  samples[j] += prox.horizontal[i]
+    end
+    if samples[j] > THRESHOLD then
+      call leds.top(32,0,0)
+    end
+    j++
+    timer.period[0] = TIME_RIGHT
+    motor.left.target =  MOTOR
+    motor.right.target = -MOTOR
+    state = 3
+  # State 3: change to move straight
+  elseif state == 3 then
+    callsub straight
+  end
+</node>
+
+
+</network>
