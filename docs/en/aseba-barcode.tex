@@ -20,6 +20,8 @@ When the robot locates the object, it emits a signal.
 
 \sect{Design}
 
+{\raggedleft \hfill Program file \bu{barcode.aesl}}
+
 Take a piece of wood about the height of the robot and about 50 cm long.
 Cover it with black tape so the background will not be detected
 by the proximity sensors.
@@ -120,12 +122,6 @@ If the sum is greater than \p{THRESHOLD}, the top LEDs are turned on
 with the color red.
 
 
-\sect{Programming notes}
-
-Writing the program is straightforward.
-
-{\raggedleft \hfill Program file \bu{barcode.aesl}}
-
 \sect{Running the program}
 
 It is quite difficult to get this program to run correctly,
@@ -153,5 +149,17 @@ with greater accuracy.
 
 \item Use strips of three widths and try to identify the width of
 each strip encountered.
+
+\item The accuracy of the search can be improved by
+placing a tape on the surface and using a line-following program
+(Chapter~\ref{ch.line}). This will not only ensure that the robot travels
+straight, but it will make it easy to determine when the right turn
+has moved to robot back to its initial heading.
+
+\item Develop a project to read a ``barcode'' consisting of strips
+of tape placed on the floor or a table. The strips will be detected
+by the ground proximity sensors. The width of the strips can be computed
+either by from the values returned by the sensors or by the time it takes
+to move from the start of a strip to its end.
 
 \end{enumerate}

@@ -176,7 +176,11 @@ The sine and cosine are computed:
   call math.sin(tsin, theta*100)
 \end{verbatim}
 In Aseba, the parameter to the trigonometric functions is within
-the entire 16-bit range 0--32767. Multiplying the angle by 100 will cause the range 0--314 to become 0--31400, approximately the 16-bit range.
+the entire 16-bit range -32768--32767, which represents
+$-\pi$--$\pi$ radians.
+Multiplying the angle by 100 will cause the range of positive
+angles 0--314 to become 0--31400, approximately the range
+of the positive angles as 16-bit integers.
 
 We can now compute the change in the x- and y-positions:
 \begin{verbatim}
@@ -184,7 +188,8 @@ We can now compute the change in the x- and y-positions:
   call math.muldiv(dy, dcenter, tcos, 32767)
 \end{verbatim}
 The result is divided by 32767 because the result of the trigonometric
-functions is within the entire 16-bit integer range, instead of 0--1.0.
+functions in Aseba is within the entire 16-bit range -32768--32767,
+instead of the normal range of real numbers $-1.0$--$1.0$.
 
 \sect{Running the program}
 
