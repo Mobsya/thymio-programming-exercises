@@ -1,6 +1,8 @@
-\chapter{Nonlinear Sensors}
+% !TeX root = aseba.tex
 
-In Chapter~\ref{c.fast} we measured the speed of the Thymio-II robot for
+\chapter{Nonlinear Sensors}\label{ch.nonlinear}
+
+In Chapter~\ref{ch.fast} we measured the speed of the Thymio robot for
 various settings of the motor power and found that the speed was a
 linear function of the power $v \approx 0.03p$. For example, a power
 setting of $300$ gave a speed of about $9$ cm/sec. In this chapter we
@@ -12,7 +14,7 @@ ask: Are the values a linear function of the distance to an obstacle?
 \sect{Specification}
 
 Construct a graph showing the values returned by the center horizontal
-proximity sensor for an obstacle placed at 1 cm intervals in front of
+sensor for an obstacle placed at 1 cm intervals in front of
 the robot.
 
 \sect{System design}
@@ -49,7 +51,7 @@ which values have been entered from a new run of the program.
 \sect{Event handlers and subroutines}
 
 When the center button is released, the current value of the center
-horizontal proximity sensor is stored in the first unused element of the
+horizontal sensor is stored in the first unused element of the
 array \p{promixity}.
 
 \sect{Programming notes}
@@ -75,7 +77,7 @@ your computer.\footnote{You need not copy the values by hand from Aseba
 to the spreadsheet. After running the program, select \bu{Files/Export
 memory content} and enter a file name such as \bu{data.txt}. Open the
 file \bu{data.txt} in an editor and look for the line
-\p{thymio-II.proximity}; the contents of the array are listed on this
+\p{thymio.proximity}; the contents of the array are listed on this
 line and you can copy and paste them into your spreadsheet.}
 
 Figure~\ref{fig.nonlinear} shows the results of two runs and their
@@ -102,11 +104,9 @@ horizontal sensors. Do the different sensors return similar values?
  
 \end{enumerate}
 
+\section{Calibrating the horizontal proximity sensors}
 
-
-\section{Calibrating the horizontal sensors}
-
-Even highly nonlinear sensors can be used if they are \emph{calibrated}.
+Nonlinear sensors can be used if they are \emph{calibrated}.
 The results of an experimental measurement (as described in the previous
 section) can be used to translate the raw sensor data into actual
 distances.
@@ -155,7 +155,7 @@ sensor.
 
 \item \p{set\_circle\_leds}: Light the number of LEDs given by the
 variable \p{distance}; it is similar to the subroutine in
-Chapter~\ref{c.fast} that displayed the motor setting.
+Chapter~\ref{ch.fast} that displayed the motor setting.
 
 \end{itemize}
 

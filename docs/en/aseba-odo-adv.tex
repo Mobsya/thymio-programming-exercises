@@ -1,6 +1,6 @@
 % !TeX root = aseba.tex
 
-\chapter{Advanced Odometry}
+\chapter{Advanced Odometry}\label{ch.odo-advanced}
 
 In the previous chapter, the distance traveled in one dimension was measured.
 For a robot like the Thymio that can turn,
@@ -51,13 +51,13 @@ the left and right wheels. The distance between them is \textit{baseline} and
 $d_l, d_r, d_c$ represent the distances moved by the two wheels and the center
 of the robot.
 
-The circumference of a circle of radius $r$ is given by $2\pi r$
-and in general the length of an arc of angle $\theta$ (in radians)\footnote{A
-radian is a unit used in many contexts to measure angles instead of the more
-familiar degrees. A circle of $360^\circ$ is defined to be $2\pi\approx 6.28$ radians. It follows that $180^\circ = \pi$ radians, $90^\circ = \pi/2$ radians
-and so on.}
-is given by $\theta r$.
-Therefore, we have:
+The circumference of a circle of radius $r$ is given by $2\pi r$ and in
+general the length of an arc of angle $\theta$ (in radians)\footnote{A
+radian is a unit used to measure angles. A circle of $360^\circ$ is
+defined to be $2\pi\approx 6.28$ radians. It follows that $180^\circ =
+\pi$ radians, $90^\circ = \pi/2$ radians and so on.} is given by $\theta
+r$. Therefore, we have:
+
 \begin{displaymath}
 \theta = d_l/r_l = d_r/r_r = d_c/r_c,
 \end{displaymath}
@@ -75,7 +75,7 @@ r_r \cdot\theta - r_l \cdot\theta &=& d_r - d_l,\\
 
 We assume that the center of the robot is halfway between its wheels,
 so $r_c =(r_l+r_r)/2$,
-and therefore $d_c / \theta =(d_l / \theta + d_r / \theta)/2$; multiplying
+and therefore $r_c = d_c / \theta =(d_l / \theta + d_r / \theta)/2$; multiplying
 by $\theta$ gives $d_c =(d_l+d_r)/2$.
 
 

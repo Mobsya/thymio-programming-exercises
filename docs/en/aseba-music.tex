@@ -1,6 +1,6 @@
 % !TeX root = aseba.tex
 
-\chapter{Composing Music On-the-Fly}
+\chapter{Composing Music On-the-Fly}\label{ch.music}
 
 The Thymio contains \emph{accelerometers} that measure
 the acceleration of the robot on each of the three axes: left-right,
@@ -45,11 +45,11 @@ music using the sound synthesizer.
 
 The initial state is \bu{off}. When the center button is touched,
 the transition to \bu{sample} is taken and the robot begins to sample
-the accelerations. The samples will be stored in a data structure and when
+the accelerations. The samples are stored in a data structure; when
 it is full, the transition to \bu{stop} is taken. Touching the center button again
 causes a transition to \bu{play} and the sounds to be played. When all the
-sounds have been played (or when the center button is touched again), the
-transition to state \bu{off} is taken and the program can be run again.
+sounds have been played (or the center button is touched again), the
+transition to state \bu{off} is taken.
 
 \sect{Constants}
 
@@ -114,8 +114,7 @@ The units of DURATION are $\frac{1}{60}$ths of a second.
 the note played---the first parameter
 to \p{sound.freq}---doesn't go below or above a sound you can hear.
 
-\item Set the LEDs on the top of the robot to reflect its current state:
-off for \bu{off}, red for \bu{sample}, green for \bu{stop}, blue for \bu{play}.
+\item Set the LEDs on the top of the robot to reflect its current state.
 
 {\raggedleft \hfill Program file \bu{music2.aesl}}
 
@@ -129,7 +128,7 @@ var notes[8] = [261, 294, 330, 349, 392, 440, 494, 523]
 \end{verbatim}
 Use the values in \p{save} to compute an index to \p{notes} to select
 a frequency for \p{call sound.freq(notes[...], DURATION)}.
-Use the modulo operator \p{\%8} to ensure that the index is in
+Use the modulo operator \p{\%\ 8} to ensure that the index is in
 the range 0--7.
 
 {\raggedleft \hfill Program file \bu{music3.aesl}}

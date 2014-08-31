@@ -7,7 +7,7 @@
            Moti Ben-Ari and other contributors
               (see authors.txt for details)
 
-    Copyright 2013 by Moti Ben-Ari and other contributors
+    Copyright 2013-14 by Moti Ben-Ari and other contributors
 
     This work is licensed under the Creative Commons
     Attribution-ShareAlike 3.0 Unported License. To view a copy
