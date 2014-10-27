@@ -1,4 +1,6 @@
-\chapter{How Fast is the Thymio-II?}\label{c.fast}
+% !TeX root = aseba.tex
+
+\chapter{How Fast is the Thymio?}\label{ch.fast}
 
 There are three related projects in this chapter. The first project measures the
 speed of the robot by measuring how long it takes the robot to move a
@@ -6,11 +8,11 @@ fixed length. The second project enhances the first one by enabling you
 to change the speed without making a change in the program. The third
 project measures the acceleration of the robot.
 
-\section{Measuring the speed of the Thymio-II}\label{s.measure}
+\section{Measuring the speed of the Thymio}\label{s.measure}
 
 \sect{Specification}
 
-Measure the speed of the Thymio-II robot.
+Measure the speed of the Thymio robot.
 
 \sect{System design}
 
@@ -123,7 +125,7 @@ is on a tape.
 \sect{Variables}
 
 \begin{itemize}
-\item \p{state}: The current value of the state machine (0..3). 
+\item \p{state}: The current value of the state machine (0 .. 3). 
 \item \p{time}:  A counter of tenths of seconds.
 
 \end{itemize}
@@ -224,11 +226,11 @@ Here is a graph of power (x-axis) vs. speed (y-axis):
 \gr{accel}{.6}
 
 The relation is linear! Linearity is a desirable property because you
-can easily change the power to obtain any needed speed. If the relation
+can easily change the power to obtain any desired speed. If the relation
 were not linear, you would have to adjust the power setting by including
 a table of power vs. speed in the program.
 
-\section{Setting the power from the Thymio-II}
+\section{Setting the power from the Thymio}
 
 \sect{Specification}
 
@@ -289,12 +291,11 @@ setting to the power uses this value:
 
 When increasing or decreasing the motor power, we have to be careful not
 to give values that are outside the range 0 .. 500 that the motor
-accepts. To avoid such \emph{saturation}, the range is checked when the
+accepts. To avoid \emph{saturation}, the range is checked when the
 left and right buttons are touched:
 
 \begin{verbatim}
   if  motor < 0 then motor = 0 end
-
   if  motor > 500 then motor = 500 end
 \end{verbatim}
 
@@ -309,12 +310,12 @@ for each value in the range 0 .. 5. Division in Aseba is integer
 division with truncation so if the value of \p{motor} is 328, the result
 of the division is 3.
 
-\section{Measuring acceleration of the Thymio-II}
+\section{Measuring acceleration of the Thymio}
 
 Acceleration is the rate of change of the speed. For example, if the
-speed of the robot starts at 0, is 5 cm/sec after 1 second, 10 cm/sec
-after 2 seconds, and 15 cm/sec after 3 seconds, then the acceleration is
-5 cm/sec per second, written 5 cm/sec$^2$.
+speed of the robot starts at 0, becomes 5 cm/sec after 1 second, then 10
+cm/sec after 2 seconds, and finally 15 cm/sec after 3 seconds, the
+acceleration is 5 cm/sec per second, written 5 cm/sec$^2$.
 
 \sect{Specification}
 
@@ -398,7 +399,6 @@ time it takes to press the pedal to the floor.
 
 \item Experiment to see how consistent the measurements are.
 Perform the speed measurement at the five power settings several times.
-Do you always receive the same values for the times.
 
 \item How sensitive is the speed measurement to the experimental setup.
 What result do you get if you measure the speed over a 2-meter course.

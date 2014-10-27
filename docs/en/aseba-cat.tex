@@ -1,4 +1,6 @@
-\chapter{The Cat Catches the Mouse}\label{c.cat}
+% !TeX root = aseba.tex
+
+\chapter{The Cat Catches the Mouse}\label{ch.cat}
 
 \sect{Specification}
 
@@ -48,11 +50,11 @@ success.
 
 \sect{System design}
 
-The Thymio-II robot will be the cat which searches for a stuffed toy
+The Thymio robot will be the cat which searches for a toy
 mouse. When the center button is touched, the robot turns left and then
 right repeatedly searching for the mouse. When the mouse is detected by
 one of the front horizontal proximity sensors, the robot turns until the
-mouse is detected by the \emph{center} sensor. Then it quickly moves
+mouse is detected by the \emph{center} proximity sensor. Then it quickly moves
 forward in that direction and stops when the mouse is very close. The
 robot announces the cat's success by playing a victory tune: the first
 four notes of Beethoven's Fifth Symphony. The robot displays its current
@@ -92,10 +94,10 @@ the center button is touched.
 when the mouse is detected.
 
 \item The transition from \bu{turn to} to \bu{pounce} occurs
-when the center proximity sensor detects the mouse.
+when the center sensor detects the mouse.
 
 \item The transition from \bu{pounce} to \bu{off} occurs
-when the center proximity sensor detects that the mouse is very close.
+when the center sensor detects that the mouse is very close.
 
 \item Additionally, in all the states except \bu{off}, touching the
 center button causes a transition to state \bu{off}.
@@ -119,9 +121,9 @@ other wheel receives negative (backwards) power of this magnitude.
 \sect{Variables}
 
 \begin{itemize}
-\item \p{state}: The current value of the state machine (0..3). 
+\item \p{state}: The current value of the state machine (0 .. 3). 
 \item \p{motor\_state}: The direction (+1 = right, $-$1 = left) in which the cat is turning.
-\item \p{sound\_state}: The state of playing the victory tune (0..4).
+\item \p{sound\_state}: The state of playing the victory tune (0 .. 4).
 \item \p{i}: An index variable for the loop that checks if the mouse is detected.
 
 \end{itemize}
@@ -145,7 +147,7 @@ the timer (\p{timer[0]}).
 (\bu{search}), subroutine \p{search} is called.
 
 \item Subroutine \p{search} changes the direction of the motor from left
-to right or from right to left. The five front proximity sensors are
+to right or from right to left. The five front sensors are
 sampled (in a loop) to determine if the mouse is detected; if so, the
 state is changed to 2 (\bu{turn to}).
 
@@ -184,7 +186,7 @@ mouse.
 
 Start each program with a title, author and copyright notice:
 \begin{verbatim}
-  # Thymio-II program: cat hunts mouse
+  # Thymio program: cat hunts mouse
   # Copyright 2013 by Moti Ben-Ari
   # CreativeCommons BY-SA 3.0
 \end{verbatim}
@@ -204,8 +206,8 @@ variables.
   # TURN      - power of motors during turn towards mouse
   # POUNCE    - power of motors during pounce on mouse
   # TIMER     - time between change of directions
-  # DETECTION - proximity detection of mouse
-  # COLLISION - proximity of collision with mouse
+  # DETECTION - threshold for the detection of the mouse
+  # COLLISION - threshold for the detection of a collision with the mouse
 
   # Variables
   var state         # 0 = off, 1 = search, 2 = turn to, 3 = pounce
@@ -213,12 +215,12 @@ variables.
   var sound_state   # 0-4 for playing Beethoven's Fifth
   var i             # loop variable
 \end{verbatim}
-The values of the comments are set in a special area in the upper right
-corner of Studio, but it is helpful to have a commented list within the
-program.
+
+The values of the comments are set in the upper right corner of Aseba
+Studio, but it is helpful to have a commented list within the program.
 
 The initialization should be comprehensive since you don't know what the
-current state of the robot is when you run a new program. For example, I
+current state of the robot is when you run the program. For example, I
 turned off the temperature LED so that it won't confuse me when I
 observe the display on the robot:
 
@@ -231,11 +233,11 @@ and easy to read. In particular, I do very little in the event handlers
 themselves and put most of the processing in a subroutine:
 \begin{verbatim}
   onevent prox
-  if state == 2 then
-    callsub turn_to
-  elseif  state == 3 then
-    callsub pounce
-  end
+    if state == 2 then
+      callsub turn_to
+    elseif  state == 3 then
+      callsub pounce
+    end
 \end{verbatim}
 
 The order of alternatives in an \p{if}-statement is important and you
@@ -244,15 +246,15 @@ checked before the side ones:
 
 \begin{verbatim}
   sub turn_to
-  if     (prox.horizontal[2] > DETECTION) then
-             # pounce
-  elseif (prox.horizontal[0] > DETECTION) or
-         (prox.horizontal[1] > DETECTION) then
-             # turn right
-  elseif (prox.horizontal[3] > DETECTION) or
-         (prox.horizontal[4] > DETECTION) then
-             # turn left
-  end
+    if     (prox.horizontal[2] > DETECTION) then
+               # pounce
+    elseif (prox.horizontal[0] > DETECTION) or
+           (prox.horizontal[1] > DETECTION) then
+               # turn right
+    elseif (prox.horizontal[3] > DETECTION) or
+           (prox.horizontal[4] > DETECTION) then
+               # turn left
+    end
 \end{verbatim}
 This means that if the center sensor \emph{and} another one detect the
 mouse in the same sample, the robot starts to pounce. Alternatively,

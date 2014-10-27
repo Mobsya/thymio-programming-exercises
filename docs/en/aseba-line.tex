@@ -1,3 +1,5 @@
+% !TeX root = aseba.tex
+
 \chapter{Line Following}\label{ch.line}
 
 \sect{Specification}
@@ -7,7 +9,7 @@ Write a program that causes the robot to follow a line on the floor.
 \sect{System design}
 
 If the floor is light-colored, the ground proximity sensors will detect
-a lot of reflected, so we need a dark line that will reflect very little
+a lot of reflected light, so we need a dark line that will reflect very little
 light. This is easy to do by placing black electrician's tape on the
 floor:
 
@@ -74,7 +76,7 @@ LEDs.
 
 \sect{State machine}
 
-There are two states: 0 for off and 1 for on.
+There are two states: 0 for \p{off} and 1 for \p{on}.
 
 \sect{Constants}
 
@@ -98,11 +100,11 @@ or decreased when the right and left buttons are pressed.
 \sect{Variables}
 
 \begin{itemize}
-\item \p{state}: The state: on or off. 
+\item \p{state}: The state: \p{off} = 0 or \p{on} = 1. 
 \item \p{motor}: The motor power setting.
 \item \p{motor\_change}: The change to the motor power setting.
 \item \p{diff}: The difference between the values of the left and right
-ground proximity sensors. 
+ground sensors. 
 \item \p{dir}: The direction the robot was turning when it left the tape
 (1 = right, $-$1 = left).
 \end{itemize}
@@ -113,7 +115,7 @@ ground proximity sensors.
 
 \item Setting the motor power: The handlers for the events
 \bu{button.left} and \bu{button.right} and the subroutine
-\p{set\_circle\_leds} were described in Chapter~\ref{c.fast}.
+\p{set\_circle\_leds} were described in Chapter~\ref{ch.fast}.
 
 \item When the center-button event occurs: if the button is released,
 the state and the motors are changed from on to off and from off to on.
@@ -128,7 +130,7 @@ direction indicated by the variable \p{dir}.
 \end{itemize}
 
 \item When the \bu{timer0} event occurs: The range of values of the
-ground proximity sensors is very large---between 0 to 1023---so the two
+ground sensors is very large---between 0 and 1023---so the two
 sensors will almost certainly measure slightly different values even if
 both are above the tape or above the floor. Therefore, the direction is
 computed only if the absolute value of the difference between the
@@ -158,10 +160,10 @@ outline of the \bu{timer0} event is:
 \begin{enumerate}
 
 \item What is the maximum speed at which the robot can reliably
-following the line? (Here, reliably means that the robot can
+following the line? (Here, \emph{reliably} means that the robot can
 successfully follow the line if you run the program several times.) The
 faster the robot, the more likely it is that the robot will lose the
-line and not be able to return quickly.
+line and not be able to return to it.
 
 \item Experiment with the power setting of the turns. My program sets
 one motor to move forward and one to move backwards. This turns the

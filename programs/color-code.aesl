@@ -1,0 +1,137 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+
+
+<!--list of constants-->
+<constant value="175" name="MOTOR_SPEED"/>
+<constant value="300" name="THRESHOLD"/>
+
+
+<!--show keywords state-->
+<keywords flag="true"/>
+
+
+<!--node thymio-II-->
+<node nodeId="1" name="thymio-II"># Thymio-II program: Color coding
+# Copyright 2014 by Moti Ben-Ari
+# CreativeCommons BY-SA 3.0
+
+# The Thymio measures the size of three strips of tape
+#   and uses the values as encodings of RGB
+
+# Constants
+#   MOTOR_SPEED  Power settings for the motors
+#   THRESHOLD    Threshold for sensing tapes
+
+# Variables
+# state: 0 = off, 1 = searching for tape start, 2 = search for tape end, 3 = end of third tape
+var state = 0
+
+var counter      # counter of proximity events
+var width[3]     # counter values for each of the three strips of tape
+var width_index  # index into width array
+var lights       # compute lights to display in circle leds
+var rgb[3]       # rgb values to display in top leds
+var i            # index into rgb array
+var prox_reading # value computed from ground proximity sensors
+
+# After computing the width of a strip of tape,
+#   display the width in the circle leds
+# Since the value may be greater than 8,
+#   compute in variable lights the number of leds to light
+sub set_circle_leds
+  if  width_index == 0 then
+    lights = 0
+  else
+    lights = width[width_index-1]/2
+  end
+  if lights==0 then call leds.circle(0,0,0,0,0,0,0,0) end
+  if lights==1 then call leds.circle(32,0,0,0,0,0,0,0) end
+  if lights==2 then call leds.circle(32,32,0,0,0,0,0,0) end
+  if lights==3 then call leds.circle(32,32,32,0,0,0,0,0) end
+  if lights==4 then call leds.circle(32,32,32,32,0,0,0,0) end
+  if lights==5 then call leds.circle(32,32,32,32,32,0,0,0) end
+  if lights==6 then call leds.circle(32,32,32,32,32,32,0,0) end
+  if lights==7 then call leds.circle(32,32,32,32,32,32,32,0) end
+  if lights==8 then call leds.circle(32,32,32,32,32,32,32,32) end
+
+# Start the Thymio:
+#   Initialize the variables, turn the leds off and start the motors
+onevent button.forward
+  if button.forward == 1 then
+	state = 1
+	call math.fill(width, 0)
+	width_index = 0
+	callsub set_circle_leds
+    call leds.top(0, 0, 0)
+    motor.left.target = MOTOR_SPEED
+	motor.right.target = MOTOR_SPEED
+  end
+
+# Stop the robot by setting state to 0 and stopping the motors
+onevent button.center
+  if button.center == 1 then
+	state = 0
+	motor.left.target = 0
+	motor.right.target = 0
+  end
+
+# Proximity event handler
+onevent prox
+  # The reading is the average of the two ground sensors
+  prox_reading = (prox.ground.reflected[0] + prox.ground.reflected[1]) / 2
+
+  # State 1
+  # Search for the start of a strip of tape
+  #   Found when the sensor value is below the threshold
+  #   Initialize the counter to 0
+  if state == 1 then
+  	if prox_reading &lt; THRESHOLD then
+      state = 2
+      counter = 0
+  	end
+  # State 2
+  # Wait for the end of a strip of tape
+  #   When the sensor value is below the threshold, increment the counter
+  #      otherwise, save the counter in the width array
+  #   After the third strip, stop the motors and transition to state 3
+  elseif state==2 then
+      if prox_reading &lt; THRESHOLD then
+        counter++
+      else
+        state = 1
+        width[width_index] = counter
+        width_index++
+        if width_index >= 3 then
+  	      state = 3
+	      motor.left.target = 0
+	      motor.right.target = 0
+        end
+  	  end
+  # State 3
+  # Display the RGB in the top leds
+  # The widths are divided into three ranges:
+  #   off, half-on, full on
+  elseif state==3 then
+    for i in 0:2 do
+      if width[i] >= 2 and width[i] &lt;= 4 then
+  	    rgb[i] = 0
+      elseif width[i] >=5 and width[i] &lt;=6 then
+        rgb[i] = 16
+      else
+        rgb[i] = 32
+      end
+    end
+    call leds.top(rgb[0], rgb[1], rgb[2])
+    width_index = 0
+  end
+  
+  # Display width in circle leds
+  callsub set_circle_leds
+</node>
+
+
+</network>

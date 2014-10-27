@@ -1,6 +1,6 @@
 % !TeX root = aseba.tex
 
-\chapter{Introduction to Odometry}
+\chapter{Introduction to Odometry}\label{ch.odo}
 
 Suppose that you are in a car and your GPS navigation system
 instructs you: ``In 700 meters turn right.'' You no longer need the
@@ -45,7 +45,7 @@ traveled by the robot.
 
 The values returned by \p{motor.X.speed} are in the range 0--500 and
 have to be converted into speeds measured in centimeters per second.
-Implement the project in Chapter~\ref{c.fast}
+Implement the project in Chapter~\ref{ch.fast}
 to compute the relationship between
 power levels and speed of your Thymio.
 
@@ -114,7 +114,7 @@ the target speed to one of the motors.
 \item Place an obstacle at a known distance in front of the Thymio.
 Modify the program so that when the odometry computation determines
 that the robot is near the obstacle, it detects the obstacle using
-the proximity sensors and then moves slowly until the robot touches the obstacle.
+the horizontal sensors and then moves slowly until the robot touches the obstacle.
 
 \end{itemize}
 
@@ -129,9 +129,9 @@ Modify the program so that the robot \emph{randomly} changes the target speeds
 of the motors in each interval after the speed is sampled.
 
 The native function \p{math.rand} returns a random
-number in the range $-32768..32767$. Before using this value as a target
+number in the range $-32768 .. 32767$. Before using this value as a target
 speed you will have to perform a computation to ensure that the value is in
-the range of the motor power values $0..500$.
+the range of the motor power values $0 .. 500$.
 
 
 

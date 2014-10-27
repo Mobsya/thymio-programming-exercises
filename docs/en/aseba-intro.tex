@@ -1,12 +1,12 @@
 % !TeX root = aseba.tex
 
-\chap{Introduction}
+\chap{Introduction}\label{ch.intro}
 
-This document describes programs that instruct the Thymio-II robot to
+This document describes programs that instruct the Thymio robot to
 perform algorithms for typical robotics applications. It assumes that
-you are familiar with the Thymio-II robot; if not, see my
+you are familiar with the Thymio robot; if not, see my
 \href{https://aseba.wdfiles.com/local--files/en:thymioprogram/thymio-vpl-tutorial-en.zip}{tutorial}
-on programming the robot using the VPL visual programming environment.
+on programming the robot using VPL (Visual Programming Language).
 You must understand the concept of \emph{event} and the concept of
 \emph{action} that the robot does in response to the occurrence of an
 event.
@@ -39,24 +39,6 @@ then compare your solution to mine.}
 
 \newpage
 
-Some of the projects described are:
-
-\begin{itemize}
-
-\item \emph{The cat catches the mouse}: The robot is a cat which
-searches for and catches a mouse. This type of requirement is common
-when a robot has to locate an object to grab it and move it someplace.
-
-\item \emph{How fast is the Thymio?}: The performance of the robot is
-measured. We compute the speed and acceleration of the robot, and
-the relationship between the amount of power applied to the motors and
-the acceleration of the robot.
-
-\item \emph{Line following}: An autonomous robot must be able to
-\emph{navigate}, that is, to move from its current position to a new
-position, for example, by following a line displayed on the floor.
-
-\end{itemize}
 
 Elementary versions of some of these projects are contained in the VPL
 tutorial. Here we present better solutions that use the capabilities of
@@ -128,31 +110,85 @@ robots. The state machine can be as simple as:
 but usually it will be more complex because the robot---like a vending
 machine---must perform several subtasks.
 
+\newpage
+\sect{Overview of the projects}
+
+\begin{description}
+
+\item[Chapter \ref{ch.cat}: The cat catches the mouse] The robot is a
+cat which searches for and catches a mouse. This type of requirement is
+common when a robot has to locate an object to grab it and move it
+someplace.
+
+\item[Chapter \ref{ch.fast}: How fast is the Thymio?] The
+performance of the robot is measured. We compute the speed and
+acceleration of the robot, and the relationship between the amount of
+power applied to the motors and the acceleration of the robot.
+
+\item[Chapter \ref{ch.line}: Line following] An autonomous robot must be
+able to \emph{navigate}, that is, to move from its current position to a
+new position, for example, by following a line displayed on the floor.
+
+\item[Chapter \ref{ch.control}: Controlling the robot] An autonomous
+robot must make decisions, such as in what direction to turn and how
+fast to travel. The robot uses control algorithms such as proportional
+control to make these decisions.
+
+\item[Chapter \ref{ch.nonlinear}: Nonlinear sensors] A sensor is linear
+if the values it returns are a linear function of what it measures. For
+example, a linear distance sensor that returns 50 if an object is 1
+meter away would return 100 is the object were 2 meters away. The
+nonlinearity of a sensor can be measured and used to calibrate the
+sensor.
+
+\item[Chapter \ref{ch.music}: Composing music on-the-fly] The Thymio
+robot contains accelerometers which can be used to measure both the
+attitude of the robot (because gravity is an acceleration that always
+points downwards) and to sense if the robot is hit or shaken. This
+project uses the accelerations obtained when the robot is shaken to
+compose music.
+
+\item[Chapter \ref{ch.odo}: Introduction to odometry and Chapter
+\ref{ch.odo-advanced}: Advanced odometry] Odometry is the calculation of
+a robot's position and heading obtained by starting at an initial
+position and using the measured velocity and time. These projects show
+how this is done, first for movement in a straight line and then in a
+turning movement.
+
+\item[Chapter \ref{ch.barcode}: Image recognition] A robot must sense
+its environment in order to carry out its tasks. This project
+demonstrates how a robot can search for a particular object by
+recognizing its barcode.
+
+\end{description}
+
+\newpage
+
 \sect{References}
 
 \begin{itemize}
-\item VPL tutorial to get acquainted with the Thymio-II robot:\\ 
+\item VPL tutorial:\\ 
 \url{https://aseba.wdfiles.com/local--files/en:thymioprogram/}\\\hspace*{2em}\url{thymio-vpl-tutorial-en.zip}
 
 \item Tutorial on programming Thymio with Aseba:\\
 \url{https://aseba.wikidot.com/en:thymiotutoriel}.
 
-\item An overview of the Studio environment:\\
+\item An overview of the Aseba Studio environment:\\
 \url{https://aseba.wikidot.com/en:asebastudio}
 
 \item The reference manual for the Aseba textual programming language:\\
 \url{https://aseba.wikidot.com/en:asebalanguage}
 
-\item The programming interface for the Thymio-II robot:\\
+\item The programming interface for the Thymio robot:\\
 \url{https://aseba.wikidot.com/en:thymioapi}
 
-\item The programming interface for the Thymio-II robot as a one-page
+\item The programming interface for the Thymio robot as a one-page
 image:\\
 \url{https://aseba.wdfiles.com/local--files/en:thymioprogram/}\\
 \hspace*{2em}\url{ThymioCheatSheet.pdf} (in PDF format) or\\
 \hspace*{2em}\url{ThymioCheatSheet.svg} (in SVG format)
 
-\item How to download an Aseba program into the Thymio-II:\\
+\item How to download an Aseba program into the Thymio:\\
 \url{https://aseba.wikidot.com/en:thymioflash}
 
 \item The native functions (mathematical) library:\\

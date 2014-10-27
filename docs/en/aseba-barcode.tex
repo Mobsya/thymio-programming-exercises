@@ -23,19 +23,17 @@ When the robot locates the object, it emits a signal.
 {\raggedleft \hfill Program file \bu{barcode.aesl}}
 
 Take a piece of wood about the height of the robot and about 50 cm long.
-Cover it with black tape so the background will not be detected
-by the proximity sensors.
-The objects are represented by strips of aluminum foil
-fastened over the black tape.
-Narrow strips are objects we don't want and
-the wide strip is the object we want.
+Cover it with black tape so the wooden background will not be detected
+by the sensors. The objects are represented by strips of aluminum foil
+fastened over the black tape. Narrow strips are objects we don't want
+and the wide strip is the object we want.
 
 \gr{barcode}{.9}
 
 The robot computes the sum of the values returned by the
 five horizontal sensors.
 When this value is above a threshold, the robot detects
-the wide strip and the top LEDs are turned on with the color red.
+the wide strip and the top LEDs are turned on.
 All the sums of the samples are stored in an array
 so that they can be examined after the robot stops.
 
@@ -87,9 +85,7 @@ as does detecting the end of the table.
 
 \begin{itemize}
 
-\item \p{MOTOR}: The power of the motors. For moving straight,
-positive values are used for both motors; for turning left and right,
-one motor is assigned a positive value and the other a negative value.
+\item \p{MOTOR}: The power of the motors.
 
 \item \p{THRESHOLD}: The threshold for detection of the wide aluminum strip.
 
@@ -111,16 +107,14 @@ but inconsistencies may require the use of slightly different times.
 
 \sect{Event handlers and subroutines}
 
-The events for touching the center and forward buttons and for detecting
+The events handlers for touching the center and forward buttons and for detecting
 the edge of the table are straightforward. Most of the computation is done
-in the handler for the event \p{timer0}. It contains an \p{if}-statement
+in the handler for \p{timer0}. It contains an \p{if}-statement
 with four alternatives, one for each state. Each alternative changes the
 motor power as required and sets the timer for the next state.
 
-Before turning right in state 2, the horizontal sensors are sampled.
-If the sum is greater than \p{THRESHOLD}, the top LEDs are turned on
-with the color red.
-
+Before turning right in state 2, the sensors are sampled.
+If the sum is greater than \p{THRESHOLD}, the top LEDs are turned on.
 
 \sect{Running the program}
 
@@ -147,19 +141,70 @@ More frequent samples will cause the robot to take a longer time
 to locate the object; however, it will locate its position
 with greater accuracy.
 
-\item Use strips of three widths and try to identify the width of
-each strip encountered.
-
 \item The accuracy of the search can be improved by
 placing a tape on the surface and using a line-following program
 (Chapter~\ref{ch.line}). This will not only ensure that the robot travels
 straight, but it will make it easy to determine when the right turn
 has moved to robot back to its initial heading.
 
-\item Develop a project to read a ``barcode'' consisting of strips
-of tape placed on the floor or a table. The strips will be detected
-by the ground proximity sensors. The width of the strips can be computed
-either by from the values returned by the sensors or by the time it takes
-to move from the start of a strip to its end.
-
 \end{enumerate}
+
+\newpage
+
+\sect{Project}
+
+Develop a program that reads a barcode consisting of three strips of
+tape placed on a table. The strips are detected by the ground sensors
+and interpreted as encodings of RGB colors. When the strips have been
+decoded, the top LEDS will display that color.
+
+{\raggedleft \hfill Program file \bu{color-code.aesl}}
+
+\textbf{Guidance:}
+
+Place three strips of tape of varying widths on a table.
+
+\begin{center}
+\begin{picture}(240,50)
+%\put(0,0){\framebox(240,50){}}
+
+\put(0,0){\framebox(30,30){}}
+\put(30,15){\oval(30,30)[r]}
+\put(45,15){\vector(1,0){15}}
+
+\put(80,0){
+\put(0,  0){\colorbox{black}{\makebox(10,30){}}}
+\put(50, 0){\colorbox{black}{\makebox(20,30){}}}
+\put(110,0){\colorbox{black}{\makebox(40,30){}}}
+
+\put(0,  40){\makebox(10,10)[c]{$w_1$}}
+\put(50, 40){\makebox(20,10)[c]{$w_2$}}
+\put(110,40){\makebox(40,10)[c]{$w_3$}}
+}
+
+\end{picture}
+\end{center}
+
+Define two constants \p{MOTOR\_SPEED} and \p{THRESHOLD}. The first is
+the power setting for both the left and right motors, and the second is
+the value of the ground sensors below which the black tape is detected.
+(Should you use the value of the left ground sensor, the right one or
+some combination of the two?)
+
+The Thymio travels across the strips of tape. When it detects a black
+tape during a \p{prox} event, it zeros a counter. The counter is
+incremented during each subsequent \p{prox} event until the black tape
+is no longer detected. The counter is then stored in an array. When
+three strips have been detected, the three values stored in the array
+are used to compute the values of the red, green and blue components and
+\p{leds.top} is set accordingly. The higher the value of the counter
+(that is, the more events that occurred while moving over a strip), the
+wider the strip and the higher the value of the color component.
+
+You will have to experiment with the parameters of this project to get
+it to work properly: the width of the strips of tape, the constants
+\p{MOTOR\_SPEED} and \p{THRESHOLD}, and the mapping between counter
+values and the values of the color components.
+
+Experiment the arrangement of the strips of tape in order to
+display different colors.
