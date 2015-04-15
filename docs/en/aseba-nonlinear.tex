@@ -7,27 +7,27 @@ various settings of the motor power and found that the speed was a
 linear function of the power $v \approx 0.03p$. For example, a power
 setting of $300$ gave a speed of about $9$ cm/sec. In this chapter we
 will look at the values returned by the horizontal proximity sensors and
-ask: Are the values a linear function of the distance to an obstacle?
+ask: Are the values a linear function of the distance to an object?
 
 \section{Measuring the horizontal proximity sensors}
 
 \sect{Specification}
 
 Construct a graph showing the values returned by the center horizontal
-sensor for an obstacle placed at 1 cm intervals in front of
+sensor for an object placed at 1 cm intervals in front of
 the robot.
 
 \sect{System design}
 
 Tape a ruler on your table and carefully place the robot so that its
-front is at the 0 mark of the ruler. Place an obstacle exactly at the 1
+front is at the 0 mark of the ruler. Place an object exactly at the 1
 cm mark on the ruler and touch the center button. Store the value of
 the center proximity sensor. Repeat for 2 cm, 3 cm, \ldots, until the
 value goes to zero.
 
 The value returned by the sensor depends not only on the distance of the
-obstacle but also on how precisely it is centered in front of the
-obstacle. For each distance, move the obstacle slightly left and right
+object but also on how precisely it is centered in front of the
+object. For each distance, move the object slightly left and right
 until the value is as large as possible.\footnote{The values change all
 the time so you won't be able to get the true maximum.} You can read the
 value of the sensor in the \bu{Variables} pane at the left of the Aseba
@@ -40,7 +40,7 @@ dynamically refreshed.
 
 \item \p{proximity}: An array for storing the values read from the
 sensor. Eight elements should be sufficient: by experiment, I found that
-the sensor is unlikely to detect an obstacle further than 8 cm away.
+the sensor is unlikely to detect an object further than 8 cm away.
 Initialize each element of the array to zero so that you can determine
 which values have been entered from a new run of the program.
 
@@ -68,7 +68,7 @@ an initial value.
 \sect{Running the program}
 
 Run the program and touch the center button for each position of the
-obstacle. The values in the array \p{proximity} will be displayed in the
+object. The values in the array \p{proximity} will be displayed in the
 \bu{Variables} pane. Construct a graph with distance on the x-axis and
 the sensor values on the y-axis. Better, run the program several times
 and use the average values of the sensors for each distance. Averaging
@@ -96,8 +96,8 @@ nonlinear outside that range.
 \item Modify the program so that it stores the results of three
 sequences of measurements and computes the average.
 
-\item Do the values measured by sensor depend on the obstacle?
-Experiment with obstacles of different shapes and materials.
+\item Do the values measured by sensor depend on the object?
+Experiment with objects of different shapes and materials.
 
 \item Modify the program so that it records the values of the other four
 horizontal sensors. Do the different sensors return similar values?
@@ -113,7 +113,7 @@ distances.
 
 \sect{Specification}
 
-When an obstacle is placed in front of the center horizontal sensor and
+When an object is placed in front of the center horizontal sensor and
 the center button touched, the circle LEDs on the top of the robot
 display the distance from the robot.
 
@@ -141,7 +141,7 @@ If the sensor measures 2000, the distance is 4 cm.
 previously measured.
 
 \item \p{distance}: The array index; its final value is the distance to
-the obstacle.
+the object.
 
 \end{itemize}
 
@@ -178,7 +178,7 @@ range 1--5, but less accurate for larger distances.
 \begin{enumerate}
 
 \item The transition between $n$ cm and $n+1$ cm is taken when the
-obstacle is bit over $n$ cm from the robot. Modify the program so that
+object is bit over $n$ cm from the robot. Modify the program so that
 the transition is taken halfway between the two distances.
 
 \item Modify the program so that it can measure distances of half a

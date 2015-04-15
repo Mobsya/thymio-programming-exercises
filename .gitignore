@@ -1,4 +1,6 @@
 build/
+new/
 *.zip
 *.pdf
 *.bat
+*~

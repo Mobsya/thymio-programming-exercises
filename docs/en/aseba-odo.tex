@@ -17,10 +17,6 @@ Odometers measure time and speed,
 and then compute distance traveled by multiplying them. In
 this chapter we demonstrate odometry with the Thymio robot.
 
-We assume that you are experienced in designing and constructing
-Aseba programs, so the presentation will be less detailed
-than in previous chapters.
-
 Feel free to make the programs more exciting by including lights
 and sounds.
 
@@ -50,7 +46,7 @@ to compute the relationship between
 power levels and speed of your Thymio.
 
 From the table on page~\pageref{tab.speed},
-I determined that my Thymio travels over the floor of my office
+I determined that my Thymio travels over the floor
 at about $\frac{\mathit{Power}}{100}\times 3.2$ cm/sec. Multiply this by
 the duration of the sampling interval in seconds to obtain the distance
 that the robot has traveled during that interval. For example, if the
@@ -111,10 +107,10 @@ computation? How consistent are the measured and computed distances?
 add or subtract a value from the constant \p{MOTOR} when assigning it as
 the target speed to one of the motors.
 
-\item Place an obstacle at a known distance in front of the Thymio.
+\item Place an object at a known distance in front of the Thymio.
 Modify the program so that when the odometry computation determines
-that the robot is near the obstacle, it detects the obstacle using
-the horizontal sensors and then moves slowly until the robot touches the obstacle.
+that the robot is near the object, it detects the object using
+the horizontal sensors and then moves slowly until the robot touches the object.
 
 \end{itemize}
 
@@ -132,6 +128,3 @@ The native function \p{math.rand} returns a random
 number in the range $-32768 .. 32767$. Before using this value as a target
 speed you will have to perform a computation to ensure that the value is in
 the range of the motor power values $0 .. 500$.
-
-
-

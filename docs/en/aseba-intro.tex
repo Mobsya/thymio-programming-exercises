@@ -2,47 +2,31 @@
 
 \chap{Introduction}\label{ch.intro}
 
-This document describes programs that instruct the Thymio robot to
-perform algorithms for typical robotics applications. It assumes that
-you are familiar with the Thymio robot; if not, see my
-\href{https://aseba.wdfiles.com/local--files/en:thymioprogram/thymio-vpl-tutorial-en.zip}{tutorial}
-on programming the robot using VPL (Visual Programming Language).
-You must understand the concept of \emph{event} and the concept of
-\emph{action} that the robot does in response to the occurrence of an
-event.
-
-The Aseba (textual) programming language and the Studio development
-environment will not be difficult to learn if you have experience in any
-programming language. There is a
-\href{https://aseba.wikidot.com/en:thymiotutoriel}{tutorial} that can
-help.
+This document describes projects for the Thymio robot using \emph{AESL},
+the textual programming language of Aseba, and its \emph{Studio}
+development environment. The document assumes that you are familiar with
+the Thymio robot, for example, by constructing projects using VPL, the
+visual programming language. You must understand the concept of an
+\emph{event} which causes an \emph{action}. Elementary versions of some
+of these projects are contained in the VPL tutorial; here we present
+better solutions that use the capabilities of AESL.
 
 \sect{Project structure}
 
-Each chapter starts with the specification of the task to be performed.
-This is followed by a description of the system design and then by an
-explanation of the program:
+Each chapter is structured as follows:
 
 \begin{itemize}
-\item Specification
-\item System design
-\item State machine (see below)
-\item Constants
-\item Variables
-\item Event handlers and subroutines
-\item Programming notes
-\item Experiments
+\item Specification of the problem to be solved.
+\item Design of the program.
+\item Construction of a state machine for the robot.
+\item Declarations of constants and variables.
+\item Description of the event handlers and subroutines.
+\item Programming notes.
+\item Experiments for you to do.
 \end{itemize}
 
-\centeredbox{I strongly suggest that you work on each part by yourself and only
-then compare your solution to mine.}
-
-\newpage
-
-
-Elementary versions of some of these projects are contained in the VPL
-tutorial. Here we present better solutions that use the capabilities of
-the textual programming language.
+\centeredbox{I strongly suggest that you work on each project by
+yourself and only then compare your solution to mine.}
 
 \sect{State machines}
 
@@ -110,15 +94,13 @@ robots. The state machine can be as simple as:
 but usually it will be more complex because the robot---like a vending
 machine---must perform several subtasks.
 
-\newpage
 \sect{Overview of the projects}
 
 \begin{description}
 
 \item[Chapter \ref{ch.cat}: The cat catches the mouse] The robot is a
 cat which searches for and catches a mouse. This type of requirement is
-common when a robot has to locate an object to grab it and move it
-someplace.
+common when a robot has to locate an object and move it someplace.
 
 \item[Chapter \ref{ch.fast}: How fast is the Thymio?] The
 performance of the robot is measured. We compute the speed and
@@ -136,13 +118,14 @@ control to make these decisions.
 
 \item[Chapter \ref{ch.nonlinear}: Nonlinear sensors] A sensor is linear
 if the values it returns are a linear function of what it measures. For
-example, a linear distance sensor that returns 50 if an object is 1
-meter away would return 100 is the object were 2 meters away. The
+example, a linear distance sensor might return the value $50\cdot d$,
+where $d$ is the distance to the object. It will return 50 if an object
+is 1 meter away and 100 if the object were 2 meters away. The
 nonlinearity of a sensor can be measured and used to calibrate the
 sensor.
 
 \item[Chapter \ref{ch.music}: Composing music on-the-fly] The Thymio
-robot contains accelerometers which can be used to measure both the
+contains accelerometers which can be used to measure both the
 attitude of the robot (because gravity is an acceleration that always
 points downwards) and to sense if the robot is hit or shaken. This
 project uses the accelerations obtained when the robot is shaken to
@@ -162,36 +145,22 @@ recognizing its barcode.
 
 \end{description}
 
-\newpage
+\sect{Increasing the detection range of the sensors}
+
+Ordinary objects need to be very close to the Thymio before they are
+detected by the horizontal proximity sensors. You can greatly increase
+the range by attaching \emph{reflector tape}, such as used on bicycles,
+to the objects.\footnote{My thanks to Francesco Mondada for showing this
+to me!} The settings of the thresholds and motor powers in the programs
+in the archive will, of couse, have to be changed.
 
 \sect{References}
 
 \begin{itemize}
-\item VPL tutorial:\\ 
-\url{https://aseba.wdfiles.com/local--files/en:thymioprogram/}\\\hspace*{2em}\url{thymio-vpl-tutorial-en.zip}
+\item Visual programming and VPL:\\ 
+\url{https://aseba.wikidot.com/en:visualprogramming}.
 
-\item Tutorial on programming Thymio with Aseba:\\
-\url{https://aseba.wikidot.com/en:thymiotutoriel}.
-
-\item An overview of the Aseba Studio environment:\\
-\url{https://aseba.wikidot.com/en:asebastudio}
-
-\item The reference manual for the Aseba textual programming language:\\
-\url{https://aseba.wikidot.com/en:asebalanguage}
-
-\item The programming interface for the Thymio robot:\\
-\url{https://aseba.wikidot.com/en:thymioapi}
-
-\item The programming interface for the Thymio robot as a one-page
-image:\\
-\url{https://aseba.wdfiles.com/local--files/en:thymioprogram/}\\
-\hspace*{2em}\url{ThymioCheatSheet.pdf} (in PDF format) or\\
-\hspace*{2em}\url{ThymioCheatSheet.svg} (in SVG format)
-
-\item How to download an Aseba program into the Thymio:\\
-\url{https://aseba.wikidot.com/en:thymioflash}
-
-\item The native functions (mathematical) library:\\
-\url{https://aseba.wikidot.com/en:asebastdnative}
-
+\item Text programming: a tutorial and documentation
+of AESL, the Studio environment and the Thymio interface:\\
+\url{https://aseba.wikidot.com/en:asebausermanual}.
 \end{itemize}

@@ -100,14 +100,17 @@ when the center sensor detects the mouse.
 when the center sensor detects that the mouse is very close.
 
 \item Additionally, in all the states except \bu{off}, touching the
-center button causes a transition to state \bu{off}.
+center button causes a transition to state \bu{off}. (These transitions
+are not shown in the above diagram.)
 \end{itemize}
+The state \bu{search} has substates for turning left and right, as does
+the playing of the sound.
 
 \sect{Constants}
 
 \begin{itemize}
 
-\item \p{SCAN}: The power of motors during the left and right search.
+\item \p{SCAN}: The power of the motors during the left and right search.
 One wheel receives positive (forward) power of this magnitude, while the
 other wheel receives negative (backwards) power of this magnitude.
 
@@ -191,15 +194,14 @@ Start each program with a title, author and copyright notice:
   # CreativeCommons BY-SA 3.0
 \end{verbatim}
 
-I suggest using the CreativeCommons BY-SA license, which allows anyone
-to copy and modify your program, provided that your name remains in the
-program and provided that they agree to let other people share their
-work.
-
-For details see \url{http://creativecommons.org/licenses/by-sa/3.0/}.
+I suggest using the
+\href{http://creativecommons.org/licenses/by-sa/3.0/}{CreativeCommons
+BY-SA license}, which allows anyone to copy and modify your program,
+provided that your name remains in the program and provided that they
+agree to let other people share their work.
 
 Next, write comments explaining the constants and declarations of the
-variables.
+variables with comments:
 \begin{verbatim}
   # Constants
   # SCAN      - power of motors during search
@@ -217,7 +219,8 @@ variables.
 \end{verbatim}
 
 The values of the comments are set in the upper right corner of Aseba
-Studio, but it is helpful to have a commented list within the program.
+Studio, but comments cannot be added directly so you should document
+them within the program.
 
 The initialization should be comprehensive since you don't know what the
 current state of the robot is when you run the program. For example, I
@@ -268,8 +271,8 @@ world it might not occur.
 
 \begin{enumerate}
 
-\item Experiment with different ``mice'': try different sizes,
-colors, and materials (metal, plastic).
+\item Experiment with ``mice'' of different sizes,
+colors and materials (metal, plastic).
 
 \item Experiment with different combinations of sensors. In my program,
 both right and both left sensors are checked to see if they detect the
@@ -277,9 +280,7 @@ mouse. What happens if only the rightmost and leftmost sensors are
 checked? What happens if the robot pounces on the mouse when it is
 detected by the center sensor \emph{and} one of the side sensors?
 
-\item In the above experiments, you may have to change the constant
-\p{DETECTION} which defines the threshold for detection. You may want to
-define different thresholds for neighboring sensors.
+\item You may want to define different thresholds for different sensors.
 
 \item Experiment with the speeds \p{SCAN}, \p{TURN} and \p{POUNCE} to
 see how they affect the ability of the robot to detect and pounce on the
