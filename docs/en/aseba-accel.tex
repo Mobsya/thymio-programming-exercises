@@ -201,7 +201,7 @@ setting are:
 be obtained by looking in the table labeled \textbf{Variables} at the
 left of the Aseba Studio window. When the robot stops, click
 \bu{refresh}. Better, click the check box \bu{auto} and the display will
-be dynamically refreshed.}
+be dynamically refreshed.\label{p.variables}}
 
 \sect{Measuring the speed}
 
@@ -304,7 +304,8 @@ left and right buttons are touched:
   if  motor > 500 then motor = 500 end
 \end{verbatim}
 
-The subroutine \p{set\_circle\_leds} consists of statements of the form:
+The subroutine \p{set\_circle\_leds} consists of statements of the
+form:\label{p.leds}
 
 \begin{verbatim}
   if motor / 100 == 3 then

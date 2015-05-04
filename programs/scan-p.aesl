@@ -16,7 +16,7 @@
 
 
 <!--node thymio-II-->
-<node nodeId="1" name="thymio-II"># Thymio-II program: proportional algorithm for searching
+<node nodeId="62941" name="thymio-II"># Thymio-II program: proportional algorithm for searching
 # Copyright 2013 by Moti Ben-Ari
 # CreativeCommons BY-SA 3.0
 
@@ -30,6 +30,7 @@ var state  # The state 0 = off, 1 = on
 state = 0
 motor.left.target  = 0
 motor.right.target = 0
+call leds.circle(0,0,0,0,0,0,0,0)
 
 # Proximity event handler
 onevent prox
@@ -41,20 +42,25 @@ onevent prox
     state = 0
     motor.left.target  = 0
     motor.right.target = 0
+    call leds.circle(0,0,32,0,0,0,0,0)
   # Otherwise reduce power by DELTA times the
   #   number of sensors that have detected the obstacle
   elseif  prox.horizontal[3] > THRESHOLD then
     motor.left.target  = -MOTOR + DELTA * 3
     motor.right.target =  MOTOR - DELTA * 3
+    call leds.circle(0,32,0,0,0,0,0,0)
   elseif  prox.horizontal[2] > THRESHOLD then
     motor.left.target  = -MOTOR + DELTA * 2
     motor.right.target =  MOTOR - DELTA * 2
+    call leds.circle(32,0,0,0,0,0,0,0)
   elseif  prox.horizontal[1] > THRESHOLD then
     motor.left.target  = -MOTOR + DELTA * 1
     motor.right.target =  MOTOR - DELTA * 1
+    call leds.circle(0,0,0,0,0,0,0,32)
   elseif  prox.horizontal[0] > THRESHOLD then
     motor.left.target  = -MOTOR + DELTA * 0
   	motor.right.target =  MOTOR - DELTA * 0
+  	call leds.circle(0,0,0,0,0,0,32,0)
   end
 
 # Start and stop the algorithm and the motors
@@ -66,6 +72,7 @@ onevent button.center
     state = 0
     motor.left.target  = 0
     motor.right.target = 0
+    call leds.circle(0,0,0,0,0,0,0,0)
   end
 </node>
 

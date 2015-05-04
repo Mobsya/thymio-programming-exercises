@@ -28,6 +28,8 @@ Each chapter is structured as follows:
 \centeredbox{I strongly suggest that you work on each project by
 yourself and only then compare your solution to mine.}
 
+\newpage
+
 \sect{State machines}
 
 You stand in front of a vending machine and wait for a candy bar to be
@@ -94,6 +96,8 @@ robots. The state machine can be as simple as:
 but usually it will be more complex because the robot---like a vending
 machine---must perform several subtasks.
 
+\newpage
+
 \sect{Overview of the projects}
 
 \begin{description}
@@ -115,6 +119,11 @@ new position, for example, by following a line displayed on the floor.
 robot must make decisions, such as in what direction to turn and how
 fast to travel. The robot uses control algorithms such as proportional
 control to make these decisions.
+
+%\item[Chapter \ref{ch.fuzzy}: Fuzzy logic] The algorithms in the
+%previous chapter used precise mathematical computations to control the
+%robot. Fuzzy logic uses imprecise language to specify control
+%algorithms.
 
 \item[Chapter \ref{ch.nonlinear}: Nonlinear sensors] A sensor is linear
 if the values it returns are a linear function of what it measures. For
@@ -145,14 +154,16 @@ recognizing its barcode.
 
 \end{description}
 
+\newpage
+
 \sect{Increasing the detection range of the sensors}
 
 Ordinary objects need to be very close to the Thymio before they are
 detected by the horizontal proximity sensors. You can greatly increase
-the range by attaching \emph{reflector tape}, such as used on bicycles,
+the range by attaching \emph{reflecting tape}, such as used on bicycles,
 to the objects.\footnote{My thanks to Francesco Mondada for showing this
 to me!} The settings of the thresholds and motor powers in the programs
-in the archive will, of couse, have to be changed.
+in the archive will, of couse, have to be changed.\label{p.reflect}
 
 \sect{References}
 

@@ -4,3 +4,8 @@ new/
 *.pdf
 *.bat
 *~
+*.aux
+*.log
+*.synctex
+*.out
+*.toc

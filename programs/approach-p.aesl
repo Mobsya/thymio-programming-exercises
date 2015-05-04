@@ -16,7 +16,7 @@
 
 
 <!--node thymio-II-->
-<node nodeId="1" name="thymio-II"># Thymio-II program: proportional algorithm for approaching
+<node nodeId="62941" name="thymio-II"># Thymio-II program: proportional algorithm for approaching
 # Copyright 2013 by Moti Ben-Ari
 # CreativeCommons BY-SA 3.0
 
@@ -32,12 +32,23 @@ var motor_power # motor power setting depending on error
 state = 0
 motor.left.target  = 0
 motor.right.target = 0
+call leds.circle(0,0,0,0,0,0,0,0)
+
+sub set_circle_leds
+  if motor_power/100==0 then call leds.circle(0,0,0,0,0,0,0,0) end
+  if motor_power/100==1 then call leds.circle(32,0,0,0,0,0,0,0) end
+  if motor_power/100==2 then call leds.circle(32,32,0,0,0,0,0,0) end
+  if motor_power/100==3 then call leds.circle(32,32,32,0,0,0,0,0) end
+  if motor_power/100==4 then call leds.circle(32,32,32,32,0,0,0,0) end
+  if motor_power/100==5 then call leds.circle(32,32,32,32,32,0,0,0) end
 
 # Stop the algorithm and the motors
 sub stop
   state = 0
-  motor.left.target  = 0
-  motor.right.target = 0
+  motor_power = 0
+  motor.left.target  = motor_power
+  motor.right.target = motor_power
+  callsub set_circle_leds
 
 # Proximity event handler
 onevent prox
@@ -57,6 +68,7 @@ onevent prox
   else
     motor.left.target  =  motor_power
   	motor.right.target =  motor_power
+    callsub set_circle_leds
   end
 
 # Center button event handler
