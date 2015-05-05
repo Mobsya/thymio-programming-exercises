@@ -16,7 +16,7 @@
 
 
 <!--node thymio-II-->
-<node nodeId="1" name="thymio-II"># Thymio-II program: measure the speed of the robot
+<node nodeId="62941" name="thymio-II"># Thymio-II program: measure the speed of the robot
 # Copyright 2013 by Moti Ben-Ari
 # CreativeCommons BY-SA 3.0
 
@@ -42,6 +42,7 @@ var time
 state = 0
 timer.period[0] = 100  # 100 ms = 0.1 seconds
 motor = 0
+motor_change = 0
 motor.left.target = motor
 motor.right.target = motor
 call leds.circle(0,0,0,0,0,0,0,0)
@@ -49,12 +50,9 @@ call leds.buttons(32,0,0,0)
 
 # Set the circle leds to indicate the motor power
 sub set_circle_leds
-  if motor/100==0 then call leds.circle(0,0,0,0,0,0,0,0) end
-  if motor/100==1 then call leds.circle(32,0,0,0,0,0,0,0) end
-  if motor/100==2 then call leds.circle(32,32,0,0,0,0,0,0) end
-  if motor/100==3 then call leds.circle(32,32,32,0,0,0,0,0) end
-  if motor/100==4 then call leds.circle(32,32,32,32,0,0,0,0) end
-  if motor/100==5 then call leds.circle(32,32,32,32,32,0,0,0) end
+  call leds.circle(
+    (motor/100)*32, (motor/200)*32, (motor/300)*32,
+    (motor/400)*32,(motor/500)*32, 0,0,0)
 
 # Left and right button event handlers
 #   Increase or decrease motor power within 0-500
@@ -78,6 +76,7 @@ onevent button.right
 sub stop
   state = 0
   motor = 0
+  motor_change = 0
   motor.left.target  = motor
   motor.right.target = motor
   callsub set_circle_leds

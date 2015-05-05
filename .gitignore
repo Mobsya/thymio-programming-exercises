@@ -9,3 +9,5 @@ new/
 *.synctex
 *.out
 *.toc
+*.xlsx
+*.docx

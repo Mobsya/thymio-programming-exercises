@@ -3,7 +3,6 @@
 
 
 <!--list of global events-->
-<event size="1" name="measure"/>
 
 
 <!--list of constants-->
@@ -14,7 +13,7 @@
 
 
 <!--node thymio-II-->
-<node nodeId="1" name="thymio-II"># Thymio-II program: calibrating a nonlinear sensor
+<node nodeId="62941" name="thymio-II"># Thymio-II program: calibrating a nonlinear sensor
 # Copyright 2013 by Moti Ben-Ari
 # CreativeCommons BY-SA 3.0
 
@@ -22,21 +21,16 @@
 #   sensor for an object at 1 .. 7 centimetrs
 # -1 is a sentinel to stop the search when the sensor returns 0
 var proximity[] = [4100, 4045, 3650, 2705, 1850, 1245, 965, -1]
-var distance  # The distance corresponding to the value
+var distance = 1 # The distance corresponding to the value
 
 call leds.circle(0,0,0,0,0,0,0,0)
 
 # Set the circle leds to indicate the distance
+#   Use 31 instead of 32 so as not to overflow
 sub set_circle_leds
-  if distance==0 then call leds.circle(0,0,0,0,0,0,0,0) end
-  if distance==1 then call leds.circle(32,0,0,0,0,0,0,0) end
-  if distance==2 then call leds.circle(32,32,0,0,0,0,0,0) end
-  if distance==3 then call leds.circle(32,32,32,0,0,0,0,0) end
-  if distance==4 then call leds.circle(32,32,32,32,0,0,0,0) end
-  if distance==5 then call leds.circle(32,32,32,32,32,0,0,0) end
-  if distance==6 then call leds.circle(32,32,32,32,32,32,0,0) end
-  if distance==7 then call leds.circle(32,32,32,32,32,32,32,0) end
-  if distance==8 then call leds.circle(32,32,32,32,32,32,32,32) end
+  call leds.circle(
+    (distance/1)*31, (distance/2)*31, (distance/3)*31, (distance/4)*31,
+    (distance/5)*31, (distance/6)*31, (distance/7)*31, (distance/8)*31)
 
 # When the center button is released,
 #   search the array until a value is found
@@ -50,6 +44,11 @@ onevent button.center
       distance++
     end
     callsub set_circle_leds
+  end
+
+onevent button.backward
+  if  button.backward == 0 then
+    call leds.circle(0,0,0,0,0,0,0,0)
   end
 </node>
 

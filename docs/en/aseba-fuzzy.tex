@@ -1,0 +1,363 @@
+\chapter{Fuzzy Logic}\label{ch.fuzzy}
+
+The control algorithms in the previous chapter used mathematical
+computations. An alternate approach is to use
+\href{http://en.wikipedia.org/wiki/Fuzzy_logic}{\emph{Fuzzy logic}}, which was originally proposed by
+\href{http://en.wikipedia.org/wiki/Lotfi_A._Zadeh}{Lotfi A. Zadeh} in
+1965. In fuzzy logic, the control algorithms use \emph{rules}:
+
+\begin{itemize}
+\item If the \emph{temperature is low} and the \emph{humidity is high},
+set the \emph{heater to high}.
+\item If the \emph{temperature is low} and the \emph{humidity is low},
+set the \emph{heater to medium}.
+\end{itemize}
+
+The logic is ``fuzzy'' because the rules are expressed in terms of
+\emph{linguistic variables} like \emph{temperature} which do not have
+precise mathematical specifications, but only imprecise linguistic
+specifications like \emph{high}.
+
+In this chapter we implement a fuzzy logic controller for
+the task from the previous chapter of approaching an object.
+
+\centeredbox{This project is complex. It assumes that you have studied
+an introduction to fuzzy logic, for example, from
+\href{http://blog.peltarion.com/2006/10/25/fuzzy-math-part-1-the-theory/}{this
+online tutorial} or from Section~2.2 of Kevin M. Passino and Stephen
+Yurkovich. \textit{Fuzzy Control}, Addison-Wesley, 1998. }
+
+\sect{Overview}
+
+A fuzzy logic controller consists of three phases that are run
+ sequentially:
+
+\begin{description}
+
+\item[Fuzzify] The values of the sensors are converted into values of
+linguistic variables called \emph{premises}. Each premise specifies the
+\emph{certainty} with which we believe that the variable is true. There
+will be three variables: \p{far}, \p{closing}, \p{near}.
+
+\item[Apply rules] A set of \emph{rules} expresses the control
+algorithm. Given a set of premises, a \emph{consequent} is inferred.
+There will be five variables for the consequents: \p{very fast},
+\p{fast}, \p{cruise}, \p{slow}, \p{stop}.
+
+\item[Defuzzify] The consequents are combined in order to produce an
+\emph{crisp} output, which for our project is the power applied to the
+motors.
+
+\end{description}
+
+\centeredbox{Certainties of the premises and consequents are given in
+the range 0.0 (not at all certain) through 1.0 (completely certain).
+Since Aseba does not support floating-point numbers, they will be scaled
+to the range 0 through 100.}
+
+
+\sect{Fuzzify}
+
+When approaching an object, the value read by the center horizontal
+sensor increases from 0 to a large number: over 4000, depending on your
+robot and the reflecting properties of the object.\footnote{It is a good
+idea to use reflecting tape as noted on page~\pageref{p.reflect}.} The
+precise value returned by the sensor needs to be fuzzified---converted
+to the value of a linguistic variable. Figure~\ref{fig.fuzz} shows three
+graphs for converting the sensor values into certainties of the
+variables for \p{far}, \p{closing} and \p{near}. The $x$-axis is the
+value returned by the sensor and the $y$-axis is the certainty.
+
+\begin{figure}
+\begin{center}
+\begin{picture}(265,120)
+%\put(0,0){\framebox(265,120){}}
+\put(15,15){
+\drawline(0,0)(250,0)
+\drawline(0,0)(0,100)
+\drawline(0,100)(50,100)
+\dashline{4}(50,100)(50,0)
+\drawline(50,100)(100,0)
+\drawline(75,0)(125,100)
+%\dashline{4}(125,100)(125,0)
+\drawline(125,100)(175,0)
+\drawline(150,0)(200,100)
+\dashline{4}(200,100)(200,0)
+\drawline(200,100)(250,100)
+\put(50,0){\circle*{4}}
+\put(75,0){\circle*{4}}
+\put(100,0){\circle*{4}}
+%\put(125,0){\circle*{4}}
+\put(150,0){\circle*{4}}
+\put(175,0){\circle*{4}}
+\put(200,0){\circle*{4}}
+}
+\put(15,0){
+\put(45,0){\makebox(10,10){\textsf{1}}}
+\put(70,0){\makebox(10,10){\textsf{2}}}
+\put(95,0){\makebox(10,10){\textsf{3}}}
+\put(145,0){\makebox(10,10){\textsf{4}}}
+\put(170,0){\makebox(10,10){\textsf{5}}}
+\put(195,0){\makebox(10,10){\textsf{6}}}
+\put(0,0){\makebox(10,10){\textsf{(0)}}}
+\put(220,0){\makebox(10,10){\textsf{(4000)}}}
+
+\put(20,75){\makebox(10,10){\textsf{far}}}
+\put(120,75){\makebox(10,10){\textsf{closing}}}
+\put(220,75){\makebox(10,10){\textsf{near}}}
+}
+\put(0,10){\makebox(10,10){\textsf{0}}}
+\put(0,110){\makebox(10,10){\textsf{100}}}
+\end{picture}
+\caption{Fuzzify the center horizontal sensor}\label{fig.fuzz}
+\end{center}
+\end{figure}
+
+The labeled points on the $x$-axis refer to thresholds: \p{(1) FAR\_LOW,
+(2) CLOSING\_LOW, (3) FAR\_HIGH, (4) NEAR\_LOW, (5) CLOSING\_HIGH, (6)
+NEAR\_HIGH}. If the value of the sensor is below \p{(1) FAR\_LOW}, then
+we are completely certain that the object is far away. If the value is
+between \p{(2) CLOSING\_LOW} and \p{(3) FAR\_HIGH} then we are somewhat
+certain that the object is far away but also somewhat certain that it is
+closing. The fuzziness results from the overlapping ranges: when the
+value is between point (2) and point(3), we can't say with complete
+certainty if the object is far away or closing.
+
+\sect{Apply rules}
+
+The three premises---the certainties of \p{far}, \p{closing} and
+\p{near}---are used to compute five consequents using the following
+rules:
+
+\begin{enumerate}
+\item If \p{far} then \p{very fast}
+\item If \p{far} and \p{closing} then \p{fast}
+\item If \p{closing} then \p{cruise}
+\item If \p{closing} and \p{near} then \p{slow}
+\item If \p{near} then \p{stop}
+\end{enumerate}
+
+The certainties of the consequents resulting from rules 1, 3, 5 are the
+same as the certainties of the corresponding premises. When there are
+two premises, as in rules 2 and 4, the certainties of the consequents
+are the minimum of the certainties of the premises. Since \emph{both} of
+the premises must apply, we can't be more certain of the consequent than
+we are of the smaller of the premises.
+
+
+\sect{Defuzzify}
+
+The next step is to combine the consequents, taking into account their
+certainties. Figure~\ref{fig.defuzz} shows the output motor powers for
+each of the five consequents. For example, if we were completely certain
+that the output is \p{cruise}, the center graph in the figure shows that
+the motor power would be set to 200, but if we were less certain, the
+motor power would be less or more.
+
+\begin{figure}
+\begin{center}
+\begin{picture}(315,120)
+%\put(0,0){\framebox(315,120){}}
+\put(15,15){
+\drawline(0,0)(300,0)
+\drawline(0,0)(0,100)
+\multiput(0,0)(50,0){5}{
+\drawline(0,0)(50,100)
+\drawline(50,100)(100,0)
+\put(50,0){\circle*{4}}
+\dashline{4}(50,0)(50,100)
+}
+}
+\put(10,0){
+\put(50,0){\makebox(10,10){\textsf{0}}}
+\put(100,0){\makebox(10,10){\textsf{100}}}
+\put(150,0){\makebox(10,10){\textsf{200}}}
+\put(200,0){\makebox(10,10){\textsf{300}}}
+\put(250,0){\makebox(10,10){\textsf{400}}}
+}
+\put(0,10){\makebox(10,10){\textsf{0}}}
+\put(0,110){\makebox(10,10){\textsf{100}}}
+\end{picture}
+\caption{Defuzzify to obtain the crisp motor setting}\label{fig.defuzz}
+\end{center}
+\end{figure}
+
+For our rules more than one consequent can have positive values. These
+are combined using the areas of the trapezoids defined by the
+certainties. Figure~\ref{fig.trap} shows the consequent \p{cruise} with
+a certainty of 40 and the consequent \p{fast} with a certainty of 20.
+
+\begin{figure}
+\begin{center}
+\begin{picture}(315,120)
+%\put(0,0){\framebox(315,120){}}
+\put(15,15){
+\drawline(0,0)(300,0)
+\drawline(0,0)(0,100)
+\multiput(100,0)(50,0){2}{
+\drawline(0,0)(50,100)
+\drawline(50,100)(100,0)
+}
+\drawline(120,40)(180,40)
+\drawline(160,20)(240,20)
+\put(100,35){\makebox(10,10){\textsf{40}}}
+\put(250,15){\makebox(10,10){\textsf{20}}}
+}
+\put(10,0){
+\put(50,0){\makebox(10,10){\textsf{0}}}
+\put(100,0){\makebox(10,10){\textsf{100}}}
+\put(150,0){\makebox(10,10){\textsf{200}}}
+\put(200,0){\makebox(10,10){\textsf{300}}}
+\put(250,0){\makebox(10,10){\textsf{400}}}
+}
+\put(0,10){\makebox(10,10){\textsf{0}}}
+\put(0,110){\makebox(10,10){\textsf{100}}}
+\end{picture}
+\caption{Areas defined by the certainties of the consequents}\label{fig.trap}
+\end{center}
+\end{figure}
+
+Let $w$ and $h$ be the width and height of the triangle. Then the area
+of the trapezoid bounded by the certainty $h'$ is given by the
+formula:\footnote{The derivation of the formula is given in an appendix
+to this chapter.}
+
+\begin{displaymath}
+wh'-wh'(\frac{h'}{2h}).
+\end{displaymath}
+
+For $w=h=100$ and $h'=20,40$, the areas are:
+
+\begin{displaymath}
+\begin{array}{l}
+100\cdot 20 - 100\cdot 20\cdot\frac{20}{200} = 1800\\
+100\cdot 40 - 100\cdot 40\cdot\frac{40}{200} = 3200.\\
+\end{array}
+\end{displaymath}
+
+To obtain a crisp value, the \emph{center of gravity} is computed. This
+is the sum of the areas weighted by the center of each triangle divided
+by the sum of the areas. For the example---and removing the scaling
+factor of 100---this gives:
+
+\begin{displaymath}
+\frac{18\cdot 3 + 32\cdot 2}{18+32}=39.
+\end{displaymath}
+This is the crisp output value which we can now scale to the range 0
+through 500 of the Thymio motors.
+
+\sect{State machine}
+
+There are two states: 0 for \p{off} and 1 for \p{on}.
+
+\sect{Constants}
+
+Define the six thresholds as shown in Figure~\ref{fig.fuzz}.
+
+\sect{Variables}
+
+The main variables are a three-element array \p{premises} and a
+five-element array \p{consequents}. Another five-element array contains
+the \p{centers} of the output membership functions. The output is stored
+in the variable \p{crisp}.
+
+\sect{Event handlers and subroutines}
+
+\begin{itemize}
+
+\item The state is turned on and off using the front and center button event handlers.
+
+\item When a proximity event occurs, three subroutines \p{fuzzify},
+\p{apply\_rules}, \p{defuzzify} are called in sequence, and then the
+value of \p{crisp} is assigned to the motor targets.
+
+\item Subroutine \p{fuzzify} checks the value of the center horizontal
+sensor against the threshold values. The certainties defined by the
+functions in Figure~\ref{fig.fuzz} are stored in the array \p{premises}.
+
+\item Subroutine \p{apply\_rules} checks for non-zero values in
+\p{premises} and then assigns certainties to the array \p{consequents}
+as described above.
+
+\item Subroutine \p{defuzzify} computes the areas and then the
+center of gravity to obtain a crisp output value.
+
+\end{itemize}
+
+\sect{Programming notes}
+
+\begin{itemize}
+
+\item You can't really see how the algorithm works by observing the
+robot. Instead, observe the variables in the table at the left of the
+window. Even better, assign the values of the premises and consequents
+to the circle LEDs after calling \p{apply\_rules}. Since the certainties
+are scaled to the range 0 through 100, by dividing by three, the
+certainties can be seen from the intensity of the LEDs:
+
+\begin{verbatim}
+call leds.circle(premises[0]/3, premises[1]/3, premises[2]/3,
+                 consequents[0]/3, consequents[1]/3, consequents[2]/3,
+                 consequents[3]/3, consequents[4]/3)
+\end{verbatim}
+
+\item Be sure to scale values appropriately since floating-point
+arithmetic is not supported by Aseba.
+
+\item The native function \p{math.multdiv} is very useful for carrying
+out the computations.
+
+\end{itemize}
+
+{\raggedleft \hfill Program file \bu{fuzzy.aesl}}
+
+\newpage
+
+\sect{Appendix: Computing the area from the certainty}
+
+The following diagram shows a triangle of width $w$ and height $h$ cut off at height $h'$:
+
+\begin{center}
+\begin{picture}(170,110)
+%\put(0,0){\framebox(170,110){}}
+\put(25,10){
+\drawline(0,0)(100,0)
+\drawline(0,0)(50,100)
+\drawline(50,100)(100,0)
+\drawline(15,30)(85,30)
+\put(0,-10){\makebox(100,10){$w$}}
+\put(0,30){\makebox(100,10){$w'$}}
+
+\put(-10,0){\vector(0,1){100}}
+\put(-25,45){\makebox(10,10)[r]{$h$}}
+\put(110,0){\vector(0,1){30}}
+\put(110,30){\vector(0,1){70}}
+\put(115,15){\makebox(10,10)[l]{$h'$}}
+\put(115,65){\makebox(10,10)[l]{$h-h'$}}
+}
+\end{picture}
+\end{center}
+
+The area of the trapezoid is the difference
+between the areas of the two triangles:
+\begin{displaymath}
+a = wh/2 - w'(h-h')/2.
+\end{displaymath}
+By similar triangles:
+\begin{displaymath}
+\frac{h}{h-h'} = \frac{w}{w'},
+\end{displaymath}
+so:
+\begin{displaymath}
+w' = \frac{w(h-h')}{h}
+\end{displaymath}
+
+Substituting:
+\begin{eqnarray*}
+a &=& \frac{wh}{2} - \frac{w(h-h')(h-h')}{2h}\\
+&=&\frac{w(h^2-(h-h')^2)}{2h}\\
+&=&\frac{w(h^2-h^2+2hh'-h'^2)}{2h}\\
+&=&\frac{w(2hh'-h'^2)}{2h}\\
+%&=&w(h'-\frac{h'^2}{2h})\\
+&=&wh'-wh'(\frac{h'}{2h}).\\
+\end{eqnarray*}

@@ -203,6 +203,19 @@ left of the Aseba Studio window. When the robot stops, click
 \bu{refresh}. Better, click the check box \bu{auto} and the display will
 be dynamically refreshed.\label{p.variables}}
 
+Use the top circle LEDs to display the value of the variable \p{time}.
+Since there are only 8 LEDs the display can only updated at long
+intervals, for example, every 4 seconds to cover the range from 0
+through 32 seconds. Remember that the variable \p{time} counts in tenths
+of a second, so the subroutine \p{set\_circle\_leds} is:\footnote{31
+is used instead of 32 to prevent the overflow of the intensity value.}
+\begin{verbatim}
+  sub set_circle_leds
+    call leds.circle(
+      (time/ 40)*31, (time/ 80)*31, (time/120)*31, (time/160)*31,
+      (time/200)*31, (time/240)*31, (time/280)*31, (time/310)*31)
+\end{verbatim}  
+
 \sect{Measuring the speed}
 
 The robot was run five times, one for each setting of the constant \p{MOTOR}: 100, 200, 300,
@@ -272,8 +285,6 @@ detect when these buttons are released.
 The subroutine \p{set\_circle\_leds} lights the correct number of
 circle LEDs.
 
-\pagebreak[4]
-
 \sect{Programming notes}
 
 {\raggedleft \hfill Program file \bu{speed2.aesl}}
@@ -304,13 +315,14 @@ left and right buttons are touched:
   if  motor > 500 then motor = 500 end
 \end{verbatim}
 
-The subroutine \p{set\_circle\_leds} consists of statements of the
-form:\label{p.leds}
+The subroutine \p{set\_circle\_leds} turns on 0 through 5 LEDS
+depending on the value of \p{motor}:\label{p.leds}
 
 \begin{verbatim}
-  if motor / 100 == 3 then
-    call leds.circle(32,32,32,0,0,0,0,0)
-  end
+  sub set_circle_leds
+    call leds.circle(
+      (motor/100)*32, (motor/200)*32, (motor/300)*32,
+      (motor/400)*32,(motor/500)*32, 0,0,0)
 \end{verbatim}
 for each value in the range 0 .. 5. Division in Aseba is integer
 division with truncation so if the value of \p{motor} is 328, the result
@@ -416,6 +428,14 @@ see if that affects the results.
 \item Experiment with the effect of friction on the speed of the robot.
 Measure the speed on a bare tile or concrete floor, on a wooden desk, on
 a sheet of plastic, and outside on the ground.
+
+\item Making corrections to keep the robot within the rectangular frame
+can cause inaccuracy in the measurement of the speed. Instead, you can
+calibrate the motors so that the robot runs straight and then measure
+the speed from on small strip of tape to another place one meter away.
+Make small adjustments in the powers of the left and right motors until
+the robot runs straight. Alternatively, use the calibration procedure
+in the Thymio robot as explained \href{https://www.thymio.org/en:thymiomotorcalibration}{here}.
 
 \item Modify the third program so that the acceleration is smooth.
 

@@ -14,7 +14,7 @@
 
 
 <!--node thymio-II-->
-<node nodeId="62941" name="thymio-II"># Thymio-II program: measuring the nonlinear sensor
+<node nodeId="1" name="thymio-II"># Thymio-II program: measuring the nonlinear sensor
 # Copyright 2013 by Moti Ben-Ari
 # CreativeCommons BY-SA 3.0
 
@@ -26,17 +26,18 @@ var count = 0  # The array index
 #   store the value of the sensor in the array
 #   and increment the index
 onevent button.center
-  if  button.center == 0 and count &lt; 8 then
+  if  button.center == 0 then
     proximity[count] = prox.horizontal[2]
     count++
   end
 
 onevent button.backward
   if  button.backward == 0 then
-    call math.fill(proximity, 0)
-    count = 0
+  for count in 0:7 do
+  	  proximity[count] = 0
   end
-</node>
+      count = 0
+  end</node>
 
 
 </network>

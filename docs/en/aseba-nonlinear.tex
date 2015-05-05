@@ -3,8 +3,8 @@
 \chapter{Nonlinear Sensors}\label{ch.nonlinear}
 
 In Chapter~\ref{ch.fast} we measured the speed of the Thymio robot for
-various settings of the motor power and found that the speed was a
-linear function of the power $v \approx 0.03p$. For example, a power
+various settings of the motor power and found that the speed $v$ was a
+linear function $v \approx 0.03p$ of the power $p$. For example, a power
 setting of $300$ gave a speed of about $9$ cm/sec. In this chapter we
 will look at the values returned by the horizontal proximity sensors and
 ask: Are the values a linear function of the distance to an object?
@@ -62,7 +62,7 @@ Aseba can determine the size of an array from the number of elements in
 an initial value.
 
 \begin{verbatim}
-  var proximity[] = [0,0,0,0,0,0,0]
+  var proximity[] = [0,0,0,0,0,0,0,0]
 \end{verbatim}
 
 \sect{Running the program}
