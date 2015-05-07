@@ -71,19 +71,43 @@ Run the program and touch the center button for each position of the
 object. The values in the array \p{proximity} will be displayed in the
 \bu{Variables} pane. Construct a graph with distance on the x-axis and
 the sensor values on the y-axis. Better, run the program several times
-and use the average values of the sensors for each distance. Averaging
-values and drawing the graph is easy if you have spreadsheet software on
-your computer.\footnote{You need not copy the values by hand from Aseba
-to the spreadsheet. After running the program, select \bu{Files/Export
-memory content} and enter a file name such as \bu{data.txt}. Open the
-file \bu{data.txt} in an editor and look for the line
-\p{thymio.proximity}; the contents of the array are listed on this
-line and you can copy and paste them into your spreadsheet.}
+and use the average values of the sensors for each distance.
 
 Figure~\ref{fig.nonlinear} shows the results of two runs and their
 average. The function is reasonably linear in the range 3--5 cm, but
 nonlinear outside that range.
 
+
+\sect{Exporting the values of the variables}
+
+It is not necessary to copy the values by hand from the \p{Variables}
+pane. After running the program, select \bu{Files/Export memory content}
+and enter a file name such as \bu{data.txt}. If you open the file in an
+editor, you will see the values of each variable, for example:
+
+\begin{verbatim}
+  thymio-II.proximity 1333 2278 2865 3338 3710 4092 4274 4349 
+\end{verbatim}
+
+You can use spreadsheet software to compute with these value or to draw
+a graph. Here are the instructions for Microsoft Excel:
+
+\begin{itemize}
+
+\item Select \bu{File/Open} from the menu and write in the name of your
+file.\footnote{The file will not be displayed unless you select \bu{All
+Files} in the list next to the \bu{File name} field.} Click \bu{Open}.
+
+\item Select \bu{Delimited} and click \bu{Next}.
+
+\item Select \bu{Space} and click \bu{Next}.
+
+\item Click \bu{Finish}.
+
+\end{itemize}
+
+To draw a graph, select the values in the line labeled
+\p{thymio-II.proximity}, click \bu{Insert/Line} and choose a style.
 
 \begin{figure}
 \gr{horiz}{.6}
