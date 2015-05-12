@@ -1,19 +1,15 @@
-% !TeX root = aseba.tex
+\chapter{Odometry in Two Dimensions}\label{ch.odo-advanced}
 
-\chapter{Advanced Odometry}\label{ch.odo-advanced}
+In the previous chapter, the distance traveled in one dimension was
+measured. For a robot like the Thymio that can turn, we want to track
+its position in the plane in two dimensions $x$ and $y$, as well as its
+\emph{heading}, the direction in which the robot is pointing.
 
-In the previous chapter, the distance traveled in one dimension was measured.
-For a robot like the Thymio that can turn,
-we want to track its position in the plane in two dimensions
-$x$ and $y$, as well as its \emph{heading}, the direction in which
-the robot is pointing.
-
-This chapter presents the basic concepts of odometry for a turning robot.
-Since Aseba only supports 16-bit integer computation,
-while the trigonometric computations that are needed
-are usually done with real numbers,
-scaling factors must be used and it
-will be rather difficult to keep track of them.
+This chapter presents the basic concepts of odometry for a turning
+robot. Since Aseba only supports 16-bit integer computation, while the
+trigonometric computations that are needed are usually done with real
+numbers, scaling factors must be used and it will be rather difficult to
+keep track of them.
 
 \sect{Specification}
 

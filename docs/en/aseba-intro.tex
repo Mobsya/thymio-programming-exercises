@@ -100,6 +100,15 @@ machine---must perform several subtasks.
 
 \sect{Overview of the projects}
 
+The document is divided into two parts. The first part
+(Chapters~\ref{ch.cat}--\ref{ch.barcode}) presents projects similar to
+those you constructed in VPL, extended to use the additional features of
+the Thymio robot that can be accessed from AESL. The second part
+(Chapters~\ref{ch.nonlinear}--\ref{ch.fuzzy}) introduces advanced
+concepts in robotics. Although the Thymio is too simple to fully explore
+these concepts, it is powerful enough so that you can get a taste of
+what advanced work in robotics is like.
+
 \begin{description}
 
 \item[Chapter \ref{ch.cat}: The cat catches the mouse] The robot is a
@@ -115,7 +124,35 @@ power applied to the motors and the acceleration of the robot.
 able to \emph{navigate}, that is, to move from its current position to a
 new position, for example, by following a line displayed on the floor.
 
-\item[Chapter \ref{ch.control}: Controlling the robot] An autonomous
+\item[Chapter \ref{ch.music}: Composing music on-the-fly] The Thymio
+contains accelerometers which can be used to measure both the
+attitude of the robot (because gravity is an acceleration that always
+points downwards) and to sense if the robot is hit or shaken. This
+project uses the accelerations obtained when the robot is shaken to
+compose music.
+
+\item[Chapter \ref{ch.odo}: Odometry] Odometry is the calculation of
+a robot's position and heading obtained by starting at an initial
+position and using the measured velocity and time.
+
+\item[Chapter \ref{ch.barcode}: Image recognition] A robot must sense
+its environment in order to carry out its tasks. This project
+demonstrates how a robot can search for a particular object by
+recognizing its barcode.
+
+\item[Chapter \ref{ch.nonlinear}: Nonlinearity] A sensor is linear
+if the values it returns are a linear function of what it measures. For
+example, a linear distance sensor might return the value $50\cdot d$,
+where $d$ is the distance to the object. It will return 50 if an object
+is 1 meter away and 100 if the object were 2 meters away. The
+nonlinearity of a sensor can be measured and used to calibrate the
+sensor.
+
+\item[Chapter \ref{ch.odo-advanced}: Odometry in Two Dimensions] A
+wheeled robot that travels in a two-dimensional plane can turn. This
+makes odometry calculations more complex.
+
+\item[Chapter \ref{ch.control}: Control] An autonomous
 robot must make decisions, such as in what direction to turn and how
 fast to travel. The robot uses control algorithms such as proportional
 control to make these decisions.
@@ -125,36 +162,7 @@ previous chapter used precise mathematical computations to control the
 robot. Fuzzy logic uses imprecise language to specify control
 algorithms.
 
-\item[Chapter \ref{ch.nonlinear}: Nonlinear sensors] A sensor is linear
-if the values it returns are a linear function of what it measures. For
-example, a linear distance sensor might return the value $50\cdot d$,
-where $d$ is the distance to the object. It will return 50 if an object
-is 1 meter away and 100 if the object were 2 meters away. The
-nonlinearity of a sensor can be measured and used to calibrate the
-sensor.
-
-\item[Chapter \ref{ch.music}: Composing music on-the-fly] The Thymio
-contains accelerometers which can be used to measure both the
-attitude of the robot (because gravity is an acceleration that always
-points downwards) and to sense if the robot is hit or shaken. This
-project uses the accelerations obtained when the robot is shaken to
-compose music.
-
-\item[Chapter \ref{ch.odo}: Introduction to odometry and Chapter
-\ref{ch.odo-advanced}: Advanced odometry] Odometry is the calculation of
-a robot's position and heading obtained by starting at an initial
-position and using the measured velocity and time. These projects show
-how this is done, first for movement in a straight line and then in a
-turning movement.
-
-\item[Chapter \ref{ch.barcode}: Image recognition] A robot must sense
-its environment in order to carry out its tasks. This project
-demonstrates how a robot can search for a particular object by
-recognizing its barcode.
-
 \end{description}
-
-\newpage
 
 \sect{Increasing the detection range of the sensors}
 
