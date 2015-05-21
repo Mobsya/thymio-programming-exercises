@@ -1,0 +1,513 @@
+\chap{Localization}\label{ch.local}
+
+\newcommand*{\doors}{
+\put(-5,-10){\framebox(330,50){}}
+\put(0,  0){\colorbox{dark-gray}{\makebox(30,30){}}}
+\put(40, 0){\colorbox{dark-gray}{\makebox(30,30){}}}
+\put(80, 0){\colorbox{light-gray}{\makebox(30,30){}}}
+\put(120, 0){\colorbox{light-gray}{\makebox(30,30){}}}
+\put(160,0){\colorbox{dark-gray}{\makebox(30,30){}}}
+\put(200,0){\colorbox{dark-gray}{\makebox(30,30){}}}
+\put(240,0){\colorbox{dark-gray}{\makebox(30,30){}}}
+\put(280, 0){\colorbox{light-gray}{\makebox(30,30){}}}
+
+\multiputlist(20,-25)(40,0){\textsf 0,1,2,3,4,5,6,7}
+}
+
+\newcommand*{\pbar}[1]{
+\drawline(0,0)(0,#1)
+\drawline(0,#1)(30,#1)
+\drawline(30,#1)(30,0)
+\put(0,#1){\makebox(30,15){.#1}}
+}
+
+\newcommand*{\paxes}{
+\drawline(0,0)(330,0)
+\drawline(0,0)(0,100)
+\put(-15,45){\makebox(10,10){$p$}}
+\put(-15,0){\makebox(10,10){$0.0$}}
+\put(-15,90){\makebox(10,10){$1.0$}}
+\put(0,-30){\makebox(330,10){$x$}}
+\multiputlist(25,-10)(40,0){\textsf 0,1,2,3,4,5,6,7}
+}
+
+\sect{How can the robot know where it is?}
+
+Consider a robot that is navigating within a known environment for which
+it has a \emph{map}. The following map shows a wall with five doors
+(dark gray blocks) and three areas where there is no door (light gray
+blocks):
+
+\begin{center}
+\begin{picture}(370,65)
+%\put(0,0){\framebox(370,65){}}
+\put(40,25){\doors}
+\end{picture}
+\end{center}
+
+The task of the robot is to enter a specific door, say the one at
+position 4. But how can the robot know where it is? In
+Chapters~\ref{ch.odo},~\ref{ch.odo-advanced}, you learned about
+odometry, which enables a robot to determine its current position given
+a know starting position. For example, if the robot is at the left end
+of the wall:
+
+\begin{center}
+\begin{picture}(370,65)
+%\put(0,0){\framebox(370,65){}}
+\put(40,25){
+\doors
+\put(-40,-10){\framebox(30,30){}}
+\put(-10,5){\oval(30,30)[r]}
+}
+\end{picture}
+\end{center}
+
+it knows that it has to travel four times the width of each door, while
+if the robot is at the following position:
+
+\begin{center}
+\begin{picture}(370,65)
+%\put(0,0){\framebox(370,65){}}
+\put(40,25){
+\doors
+\put(80,-10){\framebox(30,30){}}
+\put(110,5){\oval(30,30)[r]}
+}
+\end{picture}
+\end{center}
+
+the required door is the next one to the right. Unfortunately, odometry
+is subject to error in the measurement of the robot's speed and
+direction, so it is quite likely that as time goes by the robot will get
+lost. The purpose of \emph{localization} algorithms is to determine the
+robot's position within a known environment. In this chapter, we
+implement a simple one-dimensional version of the \emph{Markov
+algorithm}.
+
+\centeredbox{This chapter follows the explanations of the algorithms
+ given in the first week of the online course \emph{Artificial
+ Intelligence for Robotics} by Sebastian Thrun, which can be found at
+\href{https://www.udacity.com/course/artificial-intelligence-for-robotics--cs373}%
+{https://www.udacity.com/course/artificial-intelligence-for-robotics--cs373}.}
+
+\sect{Sensing increases certainty}
+
+The robot assigns a probability to the eight positions where it might be
+located. Initially, it has no idea where it is, so each position will be
+assigned the probability $1.0/8=.125$:\footnote{The labels on the bars
+in the graphs in this chapter are rounded.}
+
+\begin{center}
+\begin{picture}(350,130)
+\put(15,30){
+\paxes
+\multiput(10,0)(40,0){8}{\pbar{13}}
+}
+\end{picture}
+\end{center}
+
+Suppose now that the robot uses its sensors and detects a dark gray
+area. Now its uncertainty is reduced, because it knows that it is in
+front of one of the five doors. The probability distribution shows
+$.2$ for each of the doors and $.0$ for each of the walls:
+
+\begin{center}
+\begin{picture}(350,130)
+\put(15,30){
+\paxes
+\multiput(10,0)(40,0){2}{\pbar{20}}
+\multiput(170,0)(40,0){3}{\pbar{20}}
+\put(90,0){\pbar{0}}
+\put(130,0){\pbar{0}}
+\put(290,0){\pbar{0}}
+}
+\end{picture}
+\end{center}
+
+Next our mobile robot moves forwards (to the right) and again senses a
+dark gray area. There are now only three possibilities: it was at
+position 0 and moved to 1, it was at 4 and moved to 5, or it was at 5
+and moved to 6. If the robot's initial position was 6, after moving
+right it would no longer detect a dark gray area, so it could not have
+been there. The probability is now $.33$ for each of these three
+positions:
+
+\begin{center}
+\begin{picture}(350,130)
+\put(15,30){
+\paxes
+\put(10,0){\pbar{0}}
+\put(50,0){\pbar{33}}
+\multiput(90,0)(40,0){3}{\pbar{0}}
+\multiput(210,0)(40,0){2}{\pbar{33}}
+\put(290,0){\pbar{0}}
+}
+\end{picture}
+\end{center}
+
+After the next step of the robot, if it again detects a door, it is
+without doubt at position 6, while if it does not detect a door, it is
+either at position 2 or position 7.
+
+\sect{Uncertainty in sensing}
+
+The difference between a dark gray door and a light gray wall is
+not too great, and as the paint ages it might become more and more
+difficult to distinguish between them. Furthermore, as you have
+experienced, the robot's sensors do not give uniform responses and they
+can change over time. Therefore, the robot cannot detect with
+complete certainty whether is senses a door or a wall.
+
+We will model this by assigning probabilities to the detection. If the
+robot senses dark gray, we specify that the probability is $.9$ that it
+has (correctly) detected a door and $.1$ that it has (mistakenly)
+detected a wall. Conversely, if it senses light gray, the probabilities
+are $.1$ for a door and $.9$ for a wall.
+
+After sensing dark gray at a position where there is a door, we only
+know with probability $.125\times .9 = .1125$ that a door has been
+correctly detected; however, there is still a $.125\times .1= .0125$
+possibility that it has mistakenly detected a door. After normalizing
+(see sidebar), the probability distribution is:
+
+\begin{center}
+\begin{picture}(350,130)
+\put(15,30){
+\paxes
+\multiput(10,0)(40,0){2}{\pbar{19}}
+\multiput(90,0)(40,0){2}{\pbar{02}}
+\multiput(170,0)(40,0){3}{\pbar{19}}
+\put(290,0){\pbar{02}}
+}
+\end{picture}
+\end{center}
+
+\centeredbox{The set of probabilities of the possible outcomes of an
+event must add up to $1$ since one of the outcomes must occur. The
+probabilities that we computed add up to much less than $1$:
+\[.1125 + .1125 + .0125 + .0125 + .1125 + .1125 + .1125 + .0125 = .575.\]
+We must \emph{normalize} the probabilities by dividing by the sum
+$.575$ so that the sum will be $1$. We have $.1125/.575\approx .19$ and 
+$.0125/.575\approx .02$, so:
+\[.19 + .19 + .02 + .02 + .19 + .19 + .19 + .02 \approx 1.\]}
+
+The robot now moves to the right and we will assume that the
+probability distribution is cyclic, that is, the value associated
+with position 7 becomes the value associated with position 0:
+
+\begin{center}
+\begin{picture}(350,130)
+\put(15,30){
+\paxes
+\put(10,0){\pbar{02}}
+\multiput(50,0)(40,0){2}{\pbar{19}}
+\multiput(130,0)(40,0){2}{\pbar{02}}
+\multiput(210,0)(40,0){3}{\pbar{19}}
+}
+\end{picture}
+\end{center}
+
+If the robot again senses dark gray, the probability of being at
+positions 1, 5 or 6 should increase. Computing the probabilities
+by multiplying and normalizing gives:
+
+\begin{center}
+\begin{picture}(350,130)
+\put(15,30){
+\paxes
+\multiput(10,0)(80,0){3}{\pbar{3}}
+\put(50,0){\pbar{29}}
+\put(130,0){\pbar{0}}
+\multiput(210,0)(40,0){2}{\pbar{29}}
+\put(290,0){\pbar{3}}
+}
+\end{picture}
+\end{center}
+
+If the robot moves right again and senses a third dark gray area,
+the distribution becomes:
+
+\begin{center}
+\begin{picture}(350,130)
+\put(15,30){
+\paxes
+\multiput(10,0)(40,0){3}{\pbar{7}}
+\put(130,0){\pbar{1}}
+\put(170,0){\pbar{0}}
+\put(210,0){\pbar{7}}
+\put(250,0){\pbar{64}}
+\put(290,0){\pbar{7}}
+}
+\end{picture}
+\end{center}
+
+Not surprisingly, the robot is almost certainly at position 6.
+
+\sect{Specification}
+
+In order the careful examine the computations, our initial
+implementation will not move the robot. Instead, we will place the robot
+over black and white areas on the table and touch a button: first, to
+cause the robot to read the ground sensors and to compute the new
+probability distribution, and then to move the distribution (cyclically)
+to the right. The values of the variables can be examined in the
+\textbf{Variables} table (see page~\ref{p.variables}).
+
+The values of the probability distributions will also be displayed in
+the circle LEDs. The robot will be localized---will have computed its
+position with a high degree of certainty---when exactly one LED is
+bright and the others are dim.
+
+\sect{System design}
+
+There are two subroutines: \p{sense} which computes the changes in the
+probabilities as a result of reading the sensors, and \p{move} which
+virtually moves the robot one position to the right.
+
+\sect{State machine}
+
+There are two states that remember whether \p{sense} or \p{move} is to
+be performed next.
+
+\sect{Constants}
+\begin{itemize}
+\item LED: A scale factor for displaying probabilities in the LEDs.
+
+\item THRESHOLD: The value below which black is detected.
+
+\item P\_HIT: The probability of detecting black when on a black area or
+detecting white when on a white area.
+              
+\item P\_MISS: The probability of detecting black when on a white area
+or detecting white when on a black area.
+
+\end{itemize}
+
+
+\sect{Variables}
+
+\begin{itemize}
+
+\item \p{world}: An 8-element array with the \emph{map} of the
+environment. It is initialized by \p{[1, 1, 0, 0, 1, 1, 1, 0]},
+corresponding to the diagram at the beginning of the chapter, where 1
+means that a door exists at that position and 0 means that a wall exists
+at that position.
+
+\item \p{beliefs}: An 8-element array with the current probability
+distribution of what the robot believes is its position. The array is
+initialized by the uniform distribution with 125 in each element.
+
+\item \p{state}: State variable 0 = sense, 1 = move.
+
+\item Auxiliary variables: \p{i}, \p{hit}, \p{temp}, \p{sum}.
+
+\end{itemize}
+
+
+\sect{Event handlers and subroutines}
+
+\begin{itemize}
+\item Event \p{button.center}: Initialize \p{beliefs} to the uniform
+distribution and set \p{state} to 0.
+
+\item Event \p{button.forward}: Call subroutine \p{sense} or \p{move}
+depending on the state and update the value of \p{state}.
+
+\item Subroutine \p{display\_beliefs}: Display the values of the
+elements of \p{beliefs} in the circle LEDs after scaling approximately
+to the range 0 through 32.
+
+\item Subroutine \p{sense}: Perform the following operations:
+
+\begin{itemize}
+\item If both ground sensors are below the \p{THRESHOLD}, detect a door,
+otherwise detect a wall.
+
+\item For each position in \p{world}, if the detection matches the
+element (door or wall), multiply the corresponding position in
+\p{beliefs} by \p{P\_HIT}; otherwise, multiply by \p{P\_MISS}.
+
+\item Normalize the elements in \p{beliefs} by dividing each one by
+the sum of the elements.
+
+\end{itemize}
+
+\item Subroutine \p{move}: Move elements of \p{beliefs} one position to
+the right cyclically.
+
+\end{itemize}
+
+\sect{Programming notes}
+
+\begin{itemize}
+
+\item The probabilities in \p{beliefs} are scaled to the range 0 through 1000.
+
+\item The factors \p{P\_HIT} and \p{P\_MISS} are scaled to the range 0
+through 10.
+
+\item Use the native function \p{math.multdiv} to carry out the
+computations.
+
+\end{itemize}
+
+{\raggedleft \hfill Program file \bu{local-simple.aesl}}
+
+\sect{Experiments}
+
+\begin{enumerate}
+
+\item We showed how three measurements are sufficient to localize the
+robot if it starts at position 4. Try other positions and see if the
+algorithm works.
+
+\item Experiment with the values of \p{P\_HIT} and \p{P\_MISS}. How low
+can you specify \p{P\_HIT} and have the algorithm still work?
+
+\end{enumerate}
+
+
+\sect{Uncertain motion}
+
+As well as uncertainty in the sensors, robots are subject to uncertainty
+in their motion. We can ask the robot to move one ``position'' to the
+right, but it might move two positions, or it might move very little and
+remain in its current position. Let us modify the program for
+localization to take this uncertainty into account.
+
+Let $b$ be the belief array. The subroutine \p{sense} computed $b'$, the
+new values of the elements, using the formula:\footnote{The computations
+must take account of the cyclic movement.}
+\begin{displaymath}
+b'_i = b_i \times p,
+\end{displaymath}
+where $p$ is \p{P\_HIT} or \p{P\_MISS}, depending on whether the
+sensor value matches the map or not. The subroutine \p{move}
+simply moved the values to the right $b'_i = b_{i-1}$. With uncertainty,
+\p{move} must perform the following computation:
+\begin{displaymath}
+b'_i = (b_{i-2}\times p_2) + (b_{i-1}\times p_1) + (b_{i} \times p_0),
+\end{displaymath}
+where $p_n$ is the probability that the robot has moved $n$ positions:
+
+\begin{center}
+\begin{picture}(130,90)
+%\put(0,0){\framebox(130,90){}}
+\put(0,60){
+\put(0,0){\framebox(30,30){$b_{i-2}$}}
+\put(15,0){\vector(3,-1){87}}
+\put(50,0){\framebox(30,30){$b_{i-1}$}}
+\put(65,0){\vector(3,-2){44}}
+\put(100,0){\framebox(30,30){$b_{i}$}}
+\put(115,0){\vector(0,-1){30}}
+}
+\put(120,40){\makebox(10,10){$p_0$}}
+\put(95,40){\makebox(10,10){$p_1$}}
+\put(25,40){\makebox(10,10){$p_2$}}
+\put(0,0){\framebox(30,30){}}
+\put(50,0){\framebox(30,30){}}
+\put(100,0){\framebox(30,30){$b'_{i}$}}
+
+\end{picture}
+\end{center}
+
+
+It is highly likely that the robot will move correctly, so reasonable
+values are $p_1=0.8$ and $p_0=p_2=0.1$. (Don't forget to normalize
+after performing the computation.) With these values for uncertainty, the
+beliefs after sensing three black areas are:
+\begin{center}
+\begin{picture}(350,130)
+\put(15,30){
+\paxes
+\put(10,0){\pbar{11}}
+\put(50,0){\pbar{17}}
+\put(90,0){\pbar{04}}
+\put(130,0){\pbar{01}}
+\put(170,0){\pbar{02}}
+\put(210,0){\pbar{13}}
+\put(250,0){\pbar{46}}
+\put(290,0){\pbar{05}}
+}
+\end{picture}
+\end{center}
+
+The robot is likely at position 6, but it is less certain than before
+(.46 instead of .64).
+
+\sect{Programming notes}
+
+Declare an array \p{save} of the same length as \p{beliefs} and copy to
+\p{save} (using the native function \p{math.copy}) the values of
+\p{beliefs} before starting the computation. The original values are
+thus remain available.
+
+{\raggedleft \hfill Program file \bu{local-uncertain-motion.aesl}}
+
+
+\sect{Localization of a moving robot}
+
+Let us now attempt localization of a moving robot. Place three strips of
+tape at regular intervals on a table to simulate the three doors at
+positions 4, 5 and 6. Set the motors to a constant speed and set a timer
+to the amount of time it takes the robot to travel from one strip to the
+next. When the timer event occurs, call the subroutines \p{sense} and
+\p{move}. Start the robot before the first strip and see if it locates
+itself at position 6 after sensing the third strip.
+
+{\raggedleft \hfill Program file \bu{local-move.aesl}}
+
+
+\sect{Appendix: The mathematics of localization}
+
+\textbf{Bayes rule}
+
+The problem of localization is to determine the probability $p(x_i)$
+that the robot is at position $x_i$ for all $i$. In particular, given
+the reading $z$ of the sensor, what is the probability that we are at
+position $x_i$? This is expressed as a \emph{conditional probability}
+$p(x_i\mid z)$. The data we have available are the \emph{current}
+probability $p(x_i)$ that we are at $x_i$, and $p(z\mid x_i)$, the
+conditional probability that the sensor reads $z$ if we are in fact at
+$x_i$. In the example, initially, $p(x_i)=.125$ for all positions $x_i$,
+and, if we are at a door, the probability that the sensor detects this
+correctly is $.9$. We can now \emph{multiply} these two probabilities to
+obtain (the unnormalized) probability $\bar{p}(x_i\mid z)$, in the
+example, $.125\times .9=.1125$.
+
+To normalize the probability, we have to divide it by the sum of the
+results obtained by multiplying at each position:
+
+\begin{displaymath}
+p(z) = \sum_i p(z\mid x_i)\cdot p(x_i).
+\end{displaymath}
+
+In the example, the sum is $.575$ and $.1125/.575=.19$.
+
+The formula:
+\begin{displaymath}
+p(x\mid z) = \frac{p(z\mid x)\cdot p(x)}{p(z)}
+\end{displaymath}
+is called \emph{Bayes rule}.
+
+
+\textbf{Total probability}
+
+To compute the change in probability when the robot moves, we used
+the formula:
+\begin{displaymath}
+b'_i = (b_{i-2}\cdot p_2) + (b_{i-1}\cdot p_1) + (b_{i} \cdot p_0).
+\end{displaymath}
+Expressed in terms of probability, this is:
+\begin{displaymath}
+p'(x_i) = p(x_{i-2})\cdot p(x_i\mid x_{i-2}) \; + \;
+p(x_{i-1})\cdot p(x_i\mid x_{i-1}) \; + \; p(x_{i})\cdot p(x_i\mid x_{i}),
+\end{displaymath}
+where $p(x_i\mid x_j)$ is the probability that the current position is
+$x_i$ given that the previous position was $x_j$. The general case is:
+\begin{displaymath}
+p'(x_i) = \sum_j \;p(x_j)\cdot p(x_i\mid x_j),
+\end{displaymath}
+which is called the \emph{total probability}.

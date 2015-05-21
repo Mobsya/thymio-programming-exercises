@@ -21,9 +21,3 @@ This archive contains the source code and documentation of projects
 for the robot. These projects are designed to teach the basic concepts
 of robotics algorithms. For more information on the Thymio-II and Aseba,
 see: https://www.thymio.org/.
-
-There are four directories in this repository:
-
-docs:     The text of the document
-images:   The images used in the document
-programs: The Aseba programs described in the document

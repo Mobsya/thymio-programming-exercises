@@ -3,25 +3,27 @@
 \usepackage{graphicx,url}
 \usepackage{epic}
 \usepackage[usenames,dvipsnames]{color}
+\definecolor{light-gray}{gray}{0.9}
+\definecolor{dark-gray}{gray}{0.3}
 \usepackage[colorlinks=true,linkcolor=Blue,urlcolor=Blue,citecolor=Blue]{hyperref}
 \usepackage{../../aseba}
 \graphicspath{{../../images/}}
+\setcounter{tocdepth}{0}
 
 %\includeonly{}
 
 \begin{document}
 \include{aseba-front}
 \include{aseba-intro}
-\part{Projects}
 \include{aseba-cat}
 \include{aseba-accel}
 \include{aseba-line}
 \include{aseba-music}
 \include{aseba-odo}
 \include{aseba-barcode}
-\part{Advanced Concepts in Robotics}
 \include{aseba-nonlinear}
 \include{aseba-odo-adv}
 \include{aseba-control}
 \include{aseba-fuzzy}
+\include{aseba-local}
 \end{document}
