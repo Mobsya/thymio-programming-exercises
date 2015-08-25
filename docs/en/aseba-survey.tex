@@ -1,0 +1,243 @@
+\chap{Thymio the Surveyor}\label{ch.survey}
+
+\emph{Land surveying} is a set of techniques for determining the precise
+position of points on the earth.\footnote{See the
+\href{https://en.wikipedia.org/wiki/Surveying}{Wikipedia article on
+surveying} for an overview.} Since ancient times, surveying was used to
+mark out fields and to build large structures. This project uses the
+Thymio to determine the location of an object using two techniques:
+measuring the angle and distance to the object, and measuring the angle
+to the object from two different positions. The results will be very
+inaccurate, but the techniques and computations reflect actual practice.
+
+Take a piece of paper marked with a grid of 1 cm squares. Place the
+Thymio so that its front panel is at the left edge of the grid and place
+an object somewhere on the grid:\footnote{Print the file \bu{grid.pdf}
+in the \p{images} directory. The file was generated from the \LaTeX\
+file \bu{grid.tex}. We used reflecting tape on the object as described
+on page~\pageref{p.reflect} to increase the detection range.}
+
+\gr{survey}{.6}
+
+\sect{Measuring angles using the Thymio}
+
+The sensors are on the front panel of the robot, which forms an arc of a
+circle whose center is the hole used to place a pencil for drawing.
+Place a protractor with its center over the hole and use a thread to form
+a line from the center to a sensor (Figure~\ref{fig.angles}). Read the
+angle from the protractor. Since the sensors are spaced uniformly, we
+define a constant \p{THETA} and the five angles will be:
+
+\begin{center}
+\p{-2*THETA, -THETA, 0, -THETA, 2*THETA}.  
+\end{center}
+
+\begin{figure}
+\gr{angle}{.5}
+\caption{Measuring the angle between the sensors}\label{fig.angles}
+\end{figure}
+
+\section{Determining position from an angle and a distance}
+
+Chapter~\ref{ch.nonlinear} describes how to determine the distance to an
+object by relating the values returned by the horizontal proximity
+sensors to distance in centimeters. The angle to the object is
+determined by the horizontal sensor that returns the highest value.
+
+\sect{Computing the coordinates}
+
+Figure~\ref{fig.geom} shows the geometry of the surveyor. The object is
+indicated by the dark point. The Thymio is at the origin of a coordinate
+system with $(0,0)$ defined as the hole. The $x$-axis goes through the
+axis of the wheels, while the $y$-axis points forwards. Given the angle
+$\theta$ to the object as defined by the horizontal proximity sensor
+with the highest value, and the distance $d$ to the object defined by the
+value returned by that sensor, the coordinates can be computed using
+elementary trigonometry.
+
+\begin{figure}[htb]
+\setlength{\unitlength}{1.4pt}
+\begin{center}
+\begin{picture}(185,100)
+%\put(0,0){\framebox(185,100){}}
+\put(0,30){
+\put(0,0){\framebox(30,30){}}
+\put(30,15){\oval(30,30)[r]}
+\put(10,15){\circle{4}}
+\put(10,15){\line(1,0){150}}
+\put(10,-30){\line(0,1){90}}
+\put(-5,60){\makebox(30,10){$x$-axis}}
+\put(160,10){\makebox(30,10){$y$-axis}}
+
+\put(10,15){\vector(2,1){110}}
+\put(120,15){\line(0,1){55}}
+\put(45,20){\makebox(10,10){$\theta$}}
+\put(60,45){\makebox(10,10){$d$}}
+\put(130,35){\makebox(20,10){$x=d \sin \theta$}}
+\put(65,5){\makebox(20,10){$y=d \cos \theta$}}
+\put(121,71){\circle*{4}}
+}
+\end{picture}
+\setlength{\unitlength}{1pt}
+\caption{The geometry of the surveyor}\label{fig.geom}
+\end{center}
+\end{figure}
+
+\sect{Variables and constants}
+
+\begin{itemize}
+
+\item \p{THETA}: The angle between two sensors.
+
+\item \p{OFFSET}: The distance between the hole in the Thymio and its
+front panel.
+
+\item \p{proximity}: An array for storing the values read from the
+sensor.
+
+\item \p{max\_prox}: The proximity sensor with the maximum value.
+
+\item \p{max\_value}: The value returned by sensor \p{max\_prox}.
+
+\item \p{distance}: The distance from the Thymio hole to the object.
+
+\item \p{angle}: The angle from the $y$-axis to the object.
+
+\item \p{x, y}: The coordinates of the object.
+
+\end{itemize}
+
+You may need additional variable for indices and for storing temporary
+values.
+
+\sect{Event handlers and subroutines}
+
+It is sufficient to use one event like touching a button to initiate the
+measurements and computations, but I used two events so that the
+distance and angle are displayed on the top, bottom and circle LEDs
+before the computation is done, and later the coordinates are displayed.
+The subroutines for displaying data on the LEDs will not be described
+here; you are invited to design your own method for doing this.
+
+There are three subroutines for performing the computations:
+
+\begin{itemize}
+
+\item \p{get\_angle}: Get the angle by checking which horizontal
+proximity sensor returns the maximum value.
+
+\item \p{get\_distance}: Compute the distance corresponding to the
+maximum sensor value.
+
+\item \p{get\_coordinates}: The computation of the coordinates from the
+distance and angle is conceptually very simple, but difficult to do on
+the Thymio because the trigonometric functions do not use standard
+values for parameters like degrees or radians. Study the computations in
+Chapter~\ref{ch.odo-advanced} to see how this is done.
+
+\end{itemize}
+
+\sect{Programming notes}
+
+{\raggedleft \hfill Program file \bu{survey1.aesl}}
+
+\sect{Experiments}
+
+\begin{enumerate}
+
+\item Make a more accurate determination of the angle. If two horizontal
+sensors return values that are ``more or less'' the same, use the
+average of their two angles.
+
+\end{enumerate}
+
+\section{Determining position by triangulation}
+
+Surveyors use microwave and light waves to measure distance. Before
+these were available, it was extremely difficult to accurately measure
+distances, especially distances to very distant or inaccessible objects.
+Angles were always relatively easy to measure. Therefore,
+\emph{triangulation} was used in surveying. If you know two angles of a
+triangle and the length of the included side, you can compute the
+lengths of the other sides. Once these are known, the position of a
+distant object can be computed as we did above.
+
+\begin{figure}
+\setlength{\unitlength}{1.4pt}
+\begin{center}
+\begin{picture}(130,130)
+%\put(0,0){\framebox(130,130){}}
+\multiput(0,0)(0,100){2}{
+\put(0,0){\framebox(30,30){}}
+\put(30,15){\oval(30,30)[r]}
+\put(10,15){\circle{4}}
+\put(10,15){\line(1,0){120}}
+}
+\put(10,15){\line(0,1){100}}
+\put(130,75){\circle*{4}}
+\put(10,15){\line(2,1){120}}
+\put(10,115){\line(3,-1){120}}
+
+\put(45,20){\makebox(10,10){$\alpha$}}
+\put(45,104){\makebox(10,10){$\beta$}}
+\put(110,70){\makebox(10,10){$\gamma$}}
+\put(12,20){\makebox(10,10){$\alpha'$}}
+\put(12,100){\makebox(10,10){$\beta'$}}
+\put(60,45){\makebox(10,10){$b$}}
+\put(60,85){\makebox(10,10){$a$}}
+\put(10,65){\makebox(10,10){$c$}}
+
+\end{picture}
+\setlength{\unitlength}{1pt}
+\caption{Triangulation}\label{fig.triangulation}
+\end{center}
+\end{figure}
+
+Consider the setup shown in Figure~\ref{fig.triangulation}. The Thymio first
+measures the angle $\alpha$; then it is moved a distance of $c$ and the
+angle $\beta$ can be measured. The lengths $a$ and $b$ can be computed
+using the \emph{law of sines} for a triangle:
+
+\begin{displaymath}
+\frac{a}{\sin\alpha'} = \frac{b}{\sin\beta'} = \frac{c}{\sin\gamma}.
+\end{displaymath}
+
+We have used the interior angles of the triangle $\alpha' = 90^{\circ} -
+\alpha, \: \beta' = 90^{\circ} - \beta$.
+
+Given the angle $\alpha$, let us we compute the length $b$. We have:
+
+\begin{displaymath}
+\gamma = 180^{\circ}-\alpha'-\beta' = 180^{\circ} - (90^{\circ} -
+\alpha) - (90^{\circ} - \beta) = \alpha + \beta.
+\end{displaymath}
+From the law of sines:
+\begin{displaymath}
+b = \frac{c\sin\beta'}{\sin\gamma} =
+\frac{c\sin (90^{\circ} - \beta)}{\sin (\alpha + \beta)} =
+\frac{c\cos\beta}{\sin (\alpha + \beta)}.
+\end{displaymath}
+
+\sect{Programming notes}
+
+Two events were used: touch the forwards button to measure $\alpha$,
+then move the Thymio to the new position and touch the backwards button
+to measure $\beta$ and compute $b$.
+
+The object was placed at coordinates $(8,12)$ and the two measurements
+were done after moving the Thymio 24 cm. The results were
+$\alpha=20^{\circ}$ and $\beta=40^{\circ}$, giving $b=22$. Measuring the
+distance from the center hole to the object showed that this is a
+reasonable value. Of course, the extremely coarse measurement of the
+angles makes an accurate determination of the position impossible.
+
+{\raggedleft \hfill Program file \bu{survey2.aesl}}
+
+\sect{Experiments}
+
+\begin{enumerate}
+
+\item Program the Thymio so that it moves to the second position by
+itself after making the first measurement.
+
+\end{enumerate}

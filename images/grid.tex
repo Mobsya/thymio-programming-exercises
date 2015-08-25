@@ -1,0 +1,27 @@
+\documentclass{article}
+\usepackage{multibox}
+% Use the maximum amount of space on a page
+\textwidth=20cm
+\textheight=26cm
+\oddsidemargin=-1.5cm
+\topmargin=0cm
+\headheight=0pt
+\headsep=0pt
+
+\begin{document}
+\thispagestyle{empty}
+
+\setlength{\unitlength}{1cm}
+
+\begin{center}
+\begin{picture}(19,24)
+\thicklines
+\multiput(0,0)(1,0){19}{\line(0,1){24}}
+\multiput(0,0)(0,1){25}{\line(1,0){18}}
+\thinlines
+\multimake(-.5,-1)(1,0){19}(1,1){0}{1}{2}{3}{4}{5}{6}{7}{8}{9}{10}{11}{12}{13}{14}{15}{16}{17}{18}
+\multimake(18,-.5)(0,1){25}(1,1){-12}{-11}{-10}{-9}{-8}{-7}{-6}{-5}{-4}{-3}{-2}{-1}{0}{1}{2}{3}{4}{5}{6}{7}{8}{9}{10}{11}{12}
+\end{picture}
+\end{center}
+
+\end{document}
