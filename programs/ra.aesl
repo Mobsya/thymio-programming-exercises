@@ -1,0 +1,100 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+
+
+<!--list of constants-->
+
+
+<!--show keywords state-->
+<keywords flag="true"/>
+
+
+<!--node thymio-II-->
+<node nodeId="62941" name="thymio-II"># Thymio-II program: Algorithm for distributed mutual exclusion of two nodes
+#  Based upon Ricart-Agrawala Algorithm. See:
+#  M. Ben-Ari.
+#  Principles of Concurrent and Distributed Programming (Second Edition)
+#  Addison-Wesley, 2006
+
+# Copyright 2013 by Moti Ben-Ari
+# CreativeCommons BY-SA 3.0
+
+var number      # Number chosen by this node
+var state = 0   # State:
+#                 0 = initial
+#                 1 = want to enter CS
+#                 2 = request sent
+#                 3 = reply received
+var deferred    # Reply to other node deferred
+
+# Stop and reset
+onevent button.center
+  state = 0
+  motor.left.target = 0
+  motor.right.target = 0
+  number = -1
+  deferred = 0
+  prox.comm.rx = -1
+  prox.comm.tx = 0
+  call prox.comm.enable(1)
+  call leds.circle(32,0,0,0,0,0,0,0)
+
+# Request to enter CS
+onevent button.forward
+  state = 1
+  call leds.circle(0,32,0,0,0,0,0,0)
+
+# Algorithm implemented when message received
+onevent prox.comm
+  # Requesting state machine
+  # Want to enter CS: choose and send number
+  #   Range is even numbers in 0-1022
+  #     to save 1023 for reply
+  if state == 1 then
+      call math.rand(number)
+      number = abs(number) &amp; 1022
+      prox.comm.tx = number
+      state = 2
+      call leds.circle(0,0,32,0,0,0,0,0)
+      return
+  end
+  # Request sent
+  # If received reply (1023), enter CS and move
+  if state == 2 then
+    if prox.comm.rx == 1023 then
+      motor.left.target = 100
+      motor.right.target = 100
+      state = 3
+      call leds.circle(0,0,0,32,0,0,0,0)
+      return
+    end
+  end
+  # Replying state machine
+  # Reply if not participating or lower number received
+  if state == 0 or prox.comm.rx &lt; number then
+    prox.comm.tx = 1023
+  # Otherwise defer
+  else
+    deferred = 1
+  end
+
+# If object detected, stop and leave CS
+onevent prox
+  if prox.horizontal[2] > 4000 then
+    motor.left.target = 0
+    motor.right.target = 0
+    # If deferred reply, send it now
+    if deferred == 1 then
+      prox.comm.tx = 1023
+    else
+      prox.comm.tx = 0	
+    end
+    call leds.circle(0,0,0,0,32,0,0,0)
+  end
+</node>
+
+
+</network>

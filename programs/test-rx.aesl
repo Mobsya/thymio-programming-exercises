@@ -1,0 +1,33 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+
+
+<!--list of constants-->
+
+
+<!--show keywords state-->
+<keywords flag="true"/>
+
+
+<!--node thymio-II-->
+<node nodeId="1" name="thymio-II">onevent button.forward
+  call leds.top(32,32,32)
+  call prox.comm.enable(1)
+
+onevent button.backward
+  call leds.top(0,0,0)
+  call prox.comm.enable(0)
+
+onevent prox.comm
+  if prox.comm.rx == 1 then
+  	call leds.top(0,32,0)
+  else
+  	call leds.top(32,0,0)
+  end
+</node>
+
+
+</network>

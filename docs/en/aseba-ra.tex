@@ -1,0 +1,225 @@
+\chap{Distributed Mutual Exclusion}\label{ch.ra}
+
+Place two Thymios facing each other with a reflective object about
+halfway between them:
+
+\begin{center}
+\begin{picture}(230,45)
+%\put(0,0){\framebox(230,45){}}
+\put(0,30){\makebox(30,15){\textsf T1}}
+\put(0,0){\framebox(30,30){}}
+\put(30,15){\oval(30,30)[r]}
+\put(200,30){\makebox(30,15){\textsf T2}}
+\put(200,0){\framebox(30,30){}}
+\put(200,15){\oval(30,30)[l]}
+\put(115,15){\circle{30}}
+\end{picture}
+\end{center}
+
+What will happen if we run the following program in both robots?
+
+\begin{verbatim}
+onevent button.forward
+  motor.left.target = 100
+  motor.right.target = 100
+
+onevent prox
+  if prox.horizontal[2] > 4000 then
+    motor.left.target = 0
+    motor.right.target = 0
+  end
+\end{verbatim}
+
+{\raggedleft \hfill Program file \bu{no-mutex.aesl}}
+
+If both forward buttons are touched at about the same time, the two
+robots will simultaneously move towards the object; each robot will
+stop when it is close to the object.
+
+\sect{Distributed algorithms}
+
+Suppose that we want the robots to approach the object one-by-one. This
+is called the \emph{critical section problem} or the \emph{mutual
+exclusion problem}. It is a fundamental problem the area of computing
+called \emph{concurrent and distributed programming}. Obviously, we can
+achieve this goal by touching the button of one robot, waiting until it
+has reached the object and then touching the button of the other robot.
+The difficulty with this solution is that it assumes a central computing
+device that makes decisions for both robots. This is unrealistic in
+practice: consider the Internet where millions of computing devices
+synchronize and communicate with no central control. The basic
+requirement for distributed algorithms is that the identical algorithm
+run on all participating computing devices and that the access to
+services is fair, that is, some devices will not receive preferential
+treatment.
+
+\sect{The Ricart-Agrawala algorithm}
+
+We now describe a \emph{distributed} algorithm for mutual
+exclusion.\footnote{The algorithm is based on the Ricart-Agrawala
+algorithm, which achieves mutual exclusion for any number of nodes
+repeatedly trying to enter a critical section. The algorithm it takes
+into account several difficulties that we ignore here for simplicity,
+for example, the possibility that two robots choose the same random
+number. A full explanation can be found in Chapter~10 of M. Ben-Ari.
+\textit{Principles of Concurrent and Distributed Programming (Second
+Edition)}, Addison-Wesley, 2006.} How do people synchronize access to
+ticket counters, food service stations, and so on? They take slips of
+paper with numbers and are served in numerical order, thus implementing
+a queue. The queuing is facilitated by an electronic display, but a
+queue can be implemented simply by having people compare numbers with
+each other.
+
+The two robots choose \emph{random} numbers:
+
+\begin{center}
+\begin{picture}(230,45)
+%\put(0,0){\framebox(230,45){}}
+\put(0,30){\makebox(30,15){\textsf T1}}
+\put(0,0){\framebox(30,30){47}}
+\put(30,15){\oval(30,30)[r]}
+\put(200,30){\makebox(30,15){\textsf T2}}
+\put(200,0){\framebox(30,30){23}}
+\put(200,15){\oval(30,30)[l]}
+\put(115,15){\circle{30}}
+\end{picture}
+\end{center}
+
+Each robots sends its number in a message to the other robot:
+
+\begin{itemize}
+\item \textsf{T1} receives 23 from \textsf{T2} and compares it with
+its own number 47. Since \textsf{T2} has the lower number, it should be
+served before \textsf{T1}. Therefore, \textsf{T1} sends a \emph{reply}
+to \textsf{T2} to indicate that it can approach the object.
+
+\item \textsf{T2} receives the reply from \textsf{T1} and approaches
+the object. \emph{At the same time}, \textsf{T2} has received the
+message from \textsf{T1} with its number. Since 47 is greater than 23,
+\textsf{T2} \emph{does not} send a reply to \textsf{T1}; instead,
+it records that the sending of the reply is \emph{deferred}.
+Since \textsf{T1} does not receive a reply, it does not approach the
+object.
+
+\item When \textsf{T2} is close to the object it stops. It also recalls
+that it has deferred the reply to \textsf{T1} and sends it now.
+
+\item \textsf{T1} receives the reply and approaches the object.  
+\end{itemize}
+
+It is important to note that \emph{both} robots run the same program and
+that the algorithm is fair, in the sense that if run repeatedly, the
+random numbers will give priority to each robot about half the time.
+
+\sect{State machine}
+
+Touching the forward button indicates that the robot wants to approach
+the object. It sends a request and starts moving when the reply is
+received:
+
+\begin{center}
+\unitlength=1.2pt
+\begin{picture}(300,35)
+%\put(0,0){\framebox(300,35){}}
+\put(30,10){\oval(60,20)}
+\put(110,10){\oval(60,20)}
+\put(190,10){\oval(60,20)}
+\put(270,10){\oval(60,20)}
+\put(0,0){ \makebox(60,20){\bu{0=initial}}}
+\put(80,0){\makebox(60,20){\shortstack{\bu{1=want to}\\\bu{approach}}}}
+\put(160,0){\makebox(60,20){\shortstack{\bu{2=request}\\\bu{sent}}}}
+\put(240,0){\makebox(60,20){\shortstack{\bu{3=reply}\\\bu{received}}}}
+\put( 60,10){\vector(1,0){20}}
+\put(140,10){\vector(1,0){20}}
+\put(220,10){\vector(1,0){20}}
+\put(270,20){\line(0,1){15}}
+\put(30,35){\line(1,0){240}}
+\put(30,35){\vector(0,-1){15}}
+\end{picture}
+\end{center}
+
+\sect{Variables}
+\begin{itemize}
+\item \p{number}: The number chosen by this robot (0--1022).
+The value 1023 is used for the reply message.
+\item \p{state}: The current state of the state machine.
+\item \p{deferred}: Set to 1 if the reply must be deferred.
+\end{itemize}
+
+\sect{Programming notes}
+
+The event handler for the center button will stop the motors, enable
+IRC, and set initial values of the variables, including \p{prox.comm.tx}
+and \p{prox.comm.rx}. The event handler for the forward button will set
+\p{state} to 1 to initiate the algorithm.
+
+Most of the processing is done in the event handler for IRC
+communication. In state 1, a random number is chosen and sent to the
+other Thymio:
+
+\begin{verbatim}
+onevent prox.comm
+  if state == 1 then
+      call math.rand(number)
+      number = abs(number) &amp; 1022
+      prox.comm.tx = number
+      state = 2
+      return
+  end
+\end{verbatim}
+
+In state 2, the \p{prox.comm.rx} is checked to see if it is the reply
+message (1023); if so, the motors are started:
+\begin{verbatim}
+  if state == 2 then
+    if prox.comm.rx == 1023 then
+      motor.left.target = 100
+      motor.right.target = 100
+      state = 3
+      return
+    end
+  end
+\end{verbatim}
+
+If the robot is not competing to approach the object (it is in state 0)
+or if a lower number is received from the other robot, the reply is
+sent; otherwise it is deferred:
+ 
+\begin{verbatim}
+  if state == 0 or prox.comm.rx < number then
+    prox.comm.tx = 1023
+  else
+    deferred = 1
+  end
+\end{verbatim}
+
+When the robot is close to the object the motors can be turned off. The
+variable \p{deferred} is checked to see if a reply must be sent to the
+other robot:
+
+\begin{verbatim}
+onevent prox
+  if prox.horizontal[2] > 4000 then
+    motor.left.target = 0
+    motor.right.target = 0
+    if deferred == 1 then
+      prox.comm.tx = 1023
+    else
+      prox.comm.tx = 0	
+    end
+  end
+\end{verbatim}
+
+{\raggedleft \hfill Program file \bu{ra.aesl}}
+
+\sect{Testing the program}
+
+Place the robots and an object as shown in the above
+diagram.\footnote{The robots have to be relatively close so that IRC
+works and slightly off-center so that the object doesn't obstruct IRC.}
+Load and run the program into both robots. Touch the center buttons to
+initialize. Touch the forward button on one of the robots; only that
+robot should approach the object. Move the robot back to its starting
+position and touch the center button to reset. Now touch both forward
+buttons at the same time. One robot should approach and stop, and then
+the other robot should approach and stop.

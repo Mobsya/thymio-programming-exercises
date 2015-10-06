@@ -1,0 +1,195 @@
+\part{Multiple Robots}
+
+\chap{Infrared Communications}\label{ch.ir}
+
+The infrared horizontal proximity sensors of the Thymio are normally
+used for detecting objects, but they can also be used for communication
+with another Thymio. This chapter describes techniques that enable two
+robots to communicate. A projects using communications will be presented
+in the next chapter.
+
+\sect{Using Aseba Studio with two robots}
+
+Run two copies of Studio from the desktop. If you have two Thymio robots
+connected to two different USB ports, you will see that the two robots
+are listed in the initial target-selection window. Choose a different
+robot for each copy of Studio. When you load and run a program from one
+copy of Studio, it will run on the robot connected to that copy. In the
+following sections, each robot will have a separate program; to identify
+them, we append \p{tx} to one file name and \p{rx} to the other. 
+
+\sect{Establishing communications}
+
+To enable and disable infrared communications (IRC), use the native function:
+\begin{verbatim}
+  call prox.comm.enable(parameter)
+\end{verbatim}
+A value of 1 for the parameter enables communication, while a value of 0
+disables it.
+
+For convenience, in each program in this chapter we associate a button
+with enabling and disabling IRC. Use the top LEDs to display the state:
+
+\begin{verbatim}
+onevent button.forward
+  call leds.top(32,32,32)
+  call prox.comm.enable(1)
+
+onevent button.backward
+  call leds.top(0,0,0)
+  call prox.comm.enable(0)
+\end{verbatim}
+
+\sect{Test IRC}
+
+One Thymio TX transmits a message to another Thymio RX. The content of
+the message changes every second. RX changes its top color depending on
+the received message.
+
+When IRC is enabled, the transmitter transmits the value of the
+predefined variable \p{prox.comm.tx} every 100\,ms. We use a timer to
+change its value every second:
+
+\begin{verbatim}
+timer.period[0]=1000
+
+onevent timer0
+  if  prox.comm.tx == 1 then
+  	prox.comm.tx = 2
+  else
+  	prox.comm.tx = 1
+  end
+\end{verbatim}
+
+When a robot receives a message, the event \p{prox.comm} occurs and the
+value that was transmitted in the message is copied into the predefined
+variable \p{prox.comm.rx}. The value of this variable is used to decide
+on the top color:
+\begin{verbatim}
+onevent prox.comm
+  if prox.comm.rx == 1 then
+  	call leds.top(0,32,0)
+  else
+  	call leds.top(32,0,0)
+  end
+\end{verbatim}
+
+{\raggedleft \hfill Program file \bu{test-*.aesl}}
+
+\centeredbox{The value transmitted and received can use 10 bits: the
+values 0--1023.}
+
+\sect{Come here}
+
+One Thymio TX will send a message to ask a second Thymio RX to come meet
+it. When RX receives a message it will move forward until it is near TX,
+at which point it will stop. This demonstrates that IRC does not
+interfere with the normal functioning of the sensors for detecting
+objects.
+
+The content of the message is not important so TX sets \p{prox.comm.tx}
+to an arbitrary value. RX turns the motors on when it receives a message
+and turns the motors off when its center sensor detect TX:
+
+\begin{verbatim}
+onevent prox.comm
+  motor.left.target = 100
+  motor.right.target = 100
+  call leds.top(0, 32,0)
+
+onevent prox
+  if prox.horizontal[2] > 3000 then
+    motor.left.target = 0
+    motor.right.target = 0
+    call leds.top(32, 0,0)
+    call prox.comm.enable(0)
+  end
+\end{verbatim}
+
+Since the message is transmitted repeatedly (ten times per second), the
+event \p{prox.comm} will occur repeatedly, but that is not a problem
+since the motor is always set to the same value. However, when RX detects
+TX, IRC must be disabled so that subsequent events do not turn on the
+motor again.
+
+{\raggedleft \hfill Program file \bu{come-*.aesl}}
+
+\sect{The behavior depends on the message}
+
+Let us extend the previous project so that the movement of the receiving
+robot RX depends on the message received. TX will send a message whose
+value (1 or 2) depends on which button is touched. RX will go either
+forwards or backwards:
+
+\begin{verbatim}
+onevent prox.comm
+  if prox.comm.rx == 1 then
+    motor.left.target = 100
+    motor.right.target = 100
+    call leds.top(0, 32,0)
+  else	
+    motor.left.target = -100
+    motor.right.target = -100
+    call leds.top(0, 0, 32)
+  end
+\end{verbatim}
+
+{\raggedleft \hfill Program file \bu{come-go-*.aesl}}
+
+\sect{Two-way communications}
+
+So far, one Thymio has always transmitted messages and the other
+received them. Let us extend the above program so that when the moving
+robot RX detects the robot TX, it stops and also transmits a message so
+that TX can turn its top LEDs red. RX adds an assignment of the value 2
+to \p{prox.comm.tx} meaning that it has detected TX:
+
+\begin{verbatim}
+onevent prox
+  if prox.horizontal[2] > 3000 then
+    prox.comm.tx = 2
+    motor.left.target = 0
+    motor.right.target = 0
+    call leds.top(32, 0,0)
+  end
+\end{verbatim}
+
+Add an event handler to TX so that it changes color when it receives this
+message:
+
+\begin{verbatim}
+onevent prox.comm
+  if prox.comm.rx == 2 then
+    call leds.top(32, 0, 0)  	
+  end
+\end{verbatim}
+
+Unfortunately, this program does not work as required. The reason is
+that the robot TX continues transmitting which causes the moving robot
+RX to start moving again. Since TX is near RX, the center sensor of RX
+continues to detect TX, changes its color to red, and sends the value 2
+again. To prevent this behavior, we have to disable IRC once the value 2
+is sent and received. We can either disable TX when it receives the
+value:
+
+\begin{verbatim}
+onevent prox.comm
+  if prox.comm.rx == 2 then
+    call leds.top(32, 0, 0)  	
+    call prox.comm.enable(0)
+  end
+\end{verbatim}
+
+or we can disable IRC in RX, but we must do so only after the value 2 is
+sent. This is ensured by waiting until the \emph{next} occurrence of the
+\p{prox} event:
+
+\begin{verbatim}
+onevent prox
+  if  prox.comm.tx == 2 then
+    call prox.comm.enable(0)
+  end
+  if prox.horizontal[2] > 3000 then ...
+\end{verbatim}
+
+{\raggedleft \hfill Program file \bu{come-arrived-*.aesl}}
